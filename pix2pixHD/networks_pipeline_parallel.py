@@ -70,7 +70,7 @@ def ResnetBlock(input, name_prefix, dim, norm_type="instance",
     if use_dropout:
         out = flow.nn.dropout(out, rate=0.5)
 
-    out = flow.reflection_pad2d(input, padding=[0, 0, 1, 1])
+    out = flow.reflection_pad2d(out, padding=[0, 0, 1, 1])
     out = conv2d_layer(name_prefix + "_conv2", out, dim, kernel_size=3, padding="VALID", trainable=trainable, reuse=reuse)
     out = norm_layer(out, name_prefix + "_norm2", norm_type=norm_type)
 

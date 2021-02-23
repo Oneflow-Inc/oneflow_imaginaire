@@ -36,8 +36,7 @@ if 'crop' in opt.resize_or_crop:
 elif opt.resize_or_crop == 'scale_width':
     height = int(opt.loadSize / 2)
     width = opt.loadSize
-cityscape_label_class_num = 36
-cityscape_inst_map_channel = 1
+cityscape_label_class_num = 36 # 35 channels for labels + 1 channel for instance map 
 cityscape_image_channel = 3
 
 # (TODO:Liangdepeng) load datasets
@@ -109,10 +108,10 @@ def TrainGenerators(
     return fake_image, fake_image_concat_label, real_image_concat_label, loss_G
 
 label_nd = np.zeros((opt.batchSize, cityscape_label_class_num, height, width))
-inst_nd = np.zeros((opt.batchSize, cityscape_inst_map_channel, height, width))
 image_nd = np.zeros((opt.batchSize, cityscape_image_channel, height, width))
 
-# concat one-hot label_nd and edge inst_nd
+# concat one-hot label ndarray and edge instance map ndarray
+
 
 fake_pool = image_pool.ImagePool(opt.pool_size)
 
