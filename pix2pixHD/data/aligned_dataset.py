@@ -36,32 +36,30 @@ class AlignedDataset(object):
         self.dataset_size = len(self.A_paths) 
       
     def __getitem__(self, index):
-        flip = random.random() > 0.5
+        flip = False
+        if self.opt.isTrain:
+            flip = random.random() > 0.5
 
-        ### input A (label maps)
+        ### label maps
         A_path = self.A_paths[index]              
         A_nd = cv2.imread(A_path, 0)
         A_nd = load_label2ndarray(A_nd, self.opt, flip)
 
-        inst_tensor = feat_tensor = 0
-        ### input B (real images)
+        B_nd = inst_nd = feat_tensor = 0
+        ### real images
         if self.opt.isTrain or self.opt.use_encoded_image:
             B_path = self.B_paths[index]   
             B_nd = cv2.imread(B_path)
             B_nd = load_image2ndarray(B_nd, self.opt, flip)
 
-        ### if using instance maps        
+        ### instance maps
         if not self.opt.no_instance:
             inst_path = self.inst_paths[index]
-            # pil
             inst = Image.open(inst_path)
             params = get_params(self.opt, inst.size)
             inst_nd = np_transform(inst, self.opt, flip, method=Image.NEAREST, normalize=False)
             inst_nd = np.expand_dims(inst_nd, axis=0)
             inst_nd = np.expand_dims(inst_nd, axis=0)
-            # opencv
-            # inst_nd = cv2.imread(inst_path, 0)
-            # inst_nd = load_label2ndarray(inst_nd, self.opt)
 
         input_dict = {'label': A_nd, 'inst': inst_nd, 'image': B_nd, 
                       'feat': feat_tensor, 'path': A_path}

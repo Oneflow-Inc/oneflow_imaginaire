@@ -7,11 +7,11 @@ import random
 import oneflow as flow
 import oneflow.typing as tp
 
-import networks
 import util.util as util
 import util.image_pool as image_pool
 
-from vgg16_model import VGGLoss
+import models.networks as networks
+from models.vgg16_model import VGGLoss
 
 from data.aligned_dataset import AlignedDataset
 from options.train_options import TrainOptions
@@ -37,8 +37,9 @@ dataset.initialize(opt)
 
 batch, channel, height, width = dataset[0]["image"].shape
 
-inst_map_channel = 1
-label_class_num = opt.label_nc + inst_map_channel
+label_class_num = opt.label_nc
+if not opt.no_instance:
+    label_class_num += 1
 image_channel = opt.input_nc
 
 @flow.global_function("train", func_config)
@@ -114,14 +115,17 @@ if opt.load_pretrain != "":
     flow.load_variables(flow.checkpoint.get(opt.load_pretrain))
 
 for e in range(epoch):
-    e = e + 32
+    e = e + 4
     for i in range(dataset_len):
         data_dict = dataset[i]
 
         label_one_hot_encoding = np.zeros((batch, opt.label_nc, height, width), dtype=np.float)
         util.scatter(label_one_hot_encoding, 1, data_dict['label'].astype(np.int32), 1)
-        edge_nd = util.get_inst_map_edge(data_dict["inst"].astype(np.int32))
-        label_nd = np.concatenate((label_one_hot_encoding, edge_nd.astype(np.float)), axis = 1)
+        
+        label_nd = label_one_hot_encoding
+        if not opt.no_instance:
+            edge_nd = util.get_inst_map_edge(data_dict["inst"].astype(np.int32))
+            label_nd = np.concatenate((label_nd, edge_nd.astype(np.float)), axis = 1)
     
         fake_image, fake_image_concat_label, real_image_concat_label, loss_G = TrainGenerators(label_nd, data_dict["image"]).get()
         
@@ -134,66 +138,7 @@ for e in range(epoch):
             fake = util.tensor2im(fake_image.numpy()[0])
             label = util.onehot2label(label_one_hot_encoding[0], opt.label_nc)
             out = np.concatenate((label, fake, real), axis = 0)
-            edge_img = np.squeeze(edge_nd, axis=0)
-            edge_img = np.transpose(edge_img, (1, 2, 0))
-            edge_img *= 255
-            cv2.imwrite("train_tmp_instance.jpg", edge_img)
-            cv2.imwrite("train_tmp_result.jpg", out)
+            cv2.imwrite(opt.train_tmp_result, out)
 
         if i % 300 == 0:
-            flow.checkpoint.save("%s/opech_%d_iter_%i_Gloss_%f_Dloss_%f" % (opt.checkpoints_dir, e, i, loss_G.numpy()[0], loss_D.numpy()[0]))
-
-#     label_one_hot_encoding = np.zeros((batch, opt.label_nc, height, width))
-#     util.scatter(label_one_hot_encoding, 1, data_dict['label'].astype(np.int32), 1)
-
-    # print(label_one_hot_encoding.shape)
-
-    
-
-
-
-#     edge_nd = util.get_inst_map_edge(data_dict["inst"])
-
-#     print(edge_nd.shape)
-
-#     # edge_img = np.transpose(edge_nd[0], (1, 2, 0)) * 255
-
-
-
-
-
-# concat one-hot label_nd and edge inst_nd
-
-# fake_pool = image_pool.ImagePool(opt.pool_size)
-
-# label_nd = np.zeros((opt.batchSize, label_class_num, height, width))
-# inst_nd = np.zeros((opt.batchSize, inst_map_channel, height, width))
-# image_nd = np.zeros((opt.batchSize, image_channel, height, width))
-
-# for i in range(1000):
-#     fake_image, fake_image_concat_label, real_image_concat_label, loss_G = TrainGenerators(label_nd, image_nd).get()
-#     fake_image_pool = fake_pool.query(fake_image_concat_label.numpy())
-#     # loss_D = TrainDiscriminator(real_image_concat_label.numpy(), fake_image_pool).get()
-#     # print(fake_image_pool.shape, loss_G.numpy(), loss_D.numpy())
-#     flow.checkpoint.save("./checkpoint")
-
-
-   
-# result = fake_pool.query(test)
-# print(len(fake_pool.images))
-# for image in fake_pool.images:
-#     print(image.shape)
-# print(result.shape)
-
-# result = fake_pool.query(test)
-# print("round2")
-# print(len(fake_pool.images))
-# for image in fake_pool.images:
-#     print(image.shape)
-# print(result.shape)
-
-
-
-
-
-
+            flow.checkpoint.save("%s/epoch_%d_iter_%i_Gloss_%f_Dloss_%f" % (opt.checkpoints_dir, e, i, loss_G.numpy()[0], loss_D.numpy()[0]))

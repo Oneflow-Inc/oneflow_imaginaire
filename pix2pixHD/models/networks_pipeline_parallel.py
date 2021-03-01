@@ -74,9 +74,6 @@ def ResnetBlock(input, name_prefix, dim, norm_type="instance",
                 use_dropout=False, trainable=True, reuse=True):
     out = flow.reflection_pad2d(input, padding=[1, 1, 1, 1])
     out = conv2d_layer(name_prefix + "_conv1", out, dim, kernel_size=3, padding="VALID", trainable=trainable, reuse=reuse)
-
-    # out = conv2d_layer(name_prefix + "_conv1", input, dim, kernel_size=3, trainable=trainable, reuse=reuse)
-
     out = norm_layer(out, name_prefix + "_norm1", norm_type=norm_type, trainable=trainable, reuse=reuse)
     out = flow.nn.relu(out)
     if use_dropout:
@@ -84,7 +81,6 @@ def ResnetBlock(input, name_prefix, dim, norm_type="instance",
 
     out = flow.reflection_pad2d(out, padding=[1, 1, 1, 1])
     out = conv2d_layer(name_prefix + "_conv2", out, dim, kernel_size=3, padding="VALID", trainable=trainable, reuse=reuse)
-    # out = conv2d_layer(name_prefix + "_conv2", out, dim, kernel_size=3, trainable=trainable, reuse=reuse)
     out = norm_layer(out, name_prefix + "_norm2", norm_type=norm_type, trainable=trainable, reuse=reuse)
 
     return input + out
@@ -94,7 +90,6 @@ def GlobalGenerator(input, var_name_prefix, output_nc, ngf=64, n_downsampling=3,
     with flow.scope.namespace(var_name_prefix):
         out = flow.reflection_pad2d(input, padding=[3, 3, 3, 3])
         out = conv2d_layer("conv1", out, ngf, kernel_size=7, padding="VALID", trainable=trainable, reuse=reuse)
-        # out = conv2d_layer("conv1", input, ngf, kernel_size=7, trainable=trainable, reuse=reuse)
         out = norm_layer(out, "norm1", norm_type=norm_type, trainable=trainable, reuse=reuse)
         out = flow.nn.relu(out)
     
@@ -114,7 +109,6 @@ def GlobalGenerator(input, var_name_prefix, output_nc, ngf=64, n_downsampling=3,
         ### upsample         
         for i in range(n_downsampling):
             mult = 2**(n_downsampling - i)
-            # out = upsampleConvLayer(out, "deconv_%d" % i, int(ngf * mult / 2), 3, trainable = trainable)
             out = deconv(out, int(ngf * mult / 2), "deconv_%d" % i, kernel_size=3, strides=[2, 2], trainable=trainable, reuse=reuse)
             out = norm_layer(out, "norm_upsample_%d" % i, norm_type=norm_type, trainable=trainable, reuse=reuse)
             out = flow.nn.relu(out)
@@ -124,7 +118,6 @@ def GlobalGenerator(input, var_name_prefix, output_nc, ngf=64, n_downsampling=3,
 
         out = flow.reflection_pad2d(out, padding=[3, 3, 3, 3])
         out = conv2d_layer("conv_last", out, output_nc, kernel_size=7, padding="VALID", trainable=trainable, reuse=reuse)
-        # out = conv2d_layer("conv_last", out, output_nc, kernel_size=7, trainable=trainable, reuse=reuse)
         out = flow.math.tanh(out)
 
         return out
@@ -134,42 +127,45 @@ def LocalEnhancer(input, output_nc, ngf=32, n_downsample_global=3, n_blocks_glob
                   trainable=True, reuse=True, train_global_generator=True):
         output_prev = 0
         if train_global_generator:
-            input_downsampled = flow.nn.avg_pool2d(input, 3, 2, "SAME")
-            ### output at coarest level, get rid of final convolution layers
-            output_prev = GlobalGenerator(input_downsampled, "G1", output_nc,
-                                         ngf=ngf*2, n_downsampling=n_downsample_global, n_blocks=n_blocks_global, 
-                                         norm_type=norm_type, trainable=trainable, reuse=reuse, return_before_final_conv=True)       
+            with flow.scope.placement("gpu", "0:1"):
+                input_downsampled = flow.nn.max_pool2d(input, 3, 2, "SAME")
+                ### output at coarest level, get rid of final convolution layers
+                output_prev = GlobalGenerator(input_downsampled, "G1", output_nc,
+                                            ngf=ngf*2, n_downsampling=n_downsample_global, n_blocks=n_blocks_global, 
+                                            norm_type=norm_type, trainable=trainable, reuse=reuse, return_before_final_conv=True)       
 
         with flow.scope.namespace("G2"):
-            ### downsample            
-            out = flow.reflection_pad2d(input, padding=[3, 3, 3, 3])
-            out = conv2d_layer("conv1", out, ngf, kernel_size=7, padding="VALID", trainable=trainable, reuse=reuse)
-            out = norm_layer(out, "norm1", norm_type=norm_type, trainable=trainable, reuse=reuse)
-            out = flow.nn.relu(out)
+            with flow.scope.placement("gpu", "0:1"):
+                ### downsample            
+                out = flow.reflection_pad2d(input, padding=[3, 3, 3, 3])
+                out = conv2d_layer("conv1", out, ngf, kernel_size=7, padding="VALID", trainable=trainable, reuse=reuse)
+                out = norm_layer(out, "norm1", norm_type=norm_type, trainable=trainable, reuse=reuse)
+                out = flow.nn.relu(out)
 
-            out = conv2d_layer("conv_downsample", out, ngf*2, 
-                              kernel_size=3, strides=2, padding="SAME", trainable=trainable, reuse=reuse)
-            out = norm_layer(out, "norm_downsample", norm_type=norm_type, trainable=trainable, reuse=reuse)
-            out = flow.nn.relu(out)
+                out = conv2d_layer("conv_downsample", out, ngf*2, 
+                                kernel_size=3, strides=2, padding="SAME", trainable=trainable, reuse=reuse)
+                out = norm_layer(out, "norm_downsample", norm_type=norm_type, trainable=trainable, reuse=reuse)
+                out = flow.nn.relu(out)
 
-            if train_global_generator:
-                out = out + output_prev
+                if train_global_generator:
+                    out = out + output_prev
 
-            ### residual blocks
-            for i in range(n_blocks_local):
-                out = ResnetBlock(out, "resblock_%d" % i, ngf * 2, norm_type=norm_layer, trainable=trainable, reuse=reuse)
+            with flow.scope.placement("gpu", "0:2"):
+                ### residual blocks
+                for i in range(n_blocks_local):
+                    out = ResnetBlock(out, "resblock_%d" % i, ngf * 2, norm_type=norm_layer, trainable=trainable, reuse=reuse)
 
-            ### upsample
-            out = deconv(out, ngf, "deconv", kernel_size=3, strides=[2, 2], trainable=trainable, reuse=reuse)
-            out = norm_layer(out, "norm_upsample", norm_type=norm_type, trainable=trainable, reuse=reuse)
-            out = flow.nn.relu(out)
+                ### upsample
+                out = deconv(out, ngf, "deconv", kernel_size=3, strides=[2, 2], trainable=trainable, reuse=reuse)
+                out = norm_layer(out, "norm_upsample", norm_type=norm_type, trainable=trainable, reuse=reuse)
+                out = flow.nn.relu(out)
 
-            ### final convolution
-            out = flow.reflection_pad2d(out, padding=[3, 3, 3, 3])
-            out = conv2d_layer("conv_last", out, output_nc, kernel_size=7, padding="VALID", trainable=trainable, reuse=reuse)
-            out = flow.math.tanh(out)
+                ### final convolution
+                out = flow.reflection_pad2d(out, padding=[3, 3, 3, 3])
+                out = conv2d_layer("conv_last", out, output_nc, kernel_size=7, padding="VALID", trainable=trainable, reuse=reuse)
+                out = flow.math.tanh(out)
 
-            return out
+                return out
 
 def define_G(input, output_nc, ngf, netG, n_downsample_global=3, n_blocks_global=9,
              n_blocks_local=3, norm_type='instance', trainable=True, reuse=True, train_global_generator=True):    
@@ -266,3 +262,4 @@ def GANLoss(input, target_is_real, use_lsgan=True, target_real_label=1.0, target
         else:
             loss = flow.nn.BCELoss(input[i][-1], target) + loss
     return loss
+
