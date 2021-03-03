@@ -12,15 +12,16 @@ NGF=32
 DATA_ROOT="/DATA/disk1/ldp/CelebAMask-HQ"
 LABEL_NC=19
 LR=0.00002
+MODULE="models.networks_pipeline_parallel"
 TRAIN_TMP_RESULT="train_CelebA_local_tmp_result.jpg"
 CHECKPOINT_DIR="checkpoint_local_CelebA"
-LOAD_PRETRAIN="checkpoint_local_CelebA/merge_local_only_epoch_5_global_epoch_17"
+LOAD_PRETRAIN="checkpoint_local_CelebA/epoch_0_iter_12300_Gloss_9.614251_Dloss_0.544747"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR
 fi
 
-python3 train_of_pix2pixhd_pipeline_parallel.py \
+python3 train_of_pix2pixhd.py \
     --loadSize $LOAD_SIZE \
     --gpu_nums $GPU_NUMS \
     --batchSize $BATCH_SIZE \
@@ -28,6 +29,7 @@ python3 train_of_pix2pixhd_pipeline_parallel.py \
     --ngf $NGF \
     --no_instance \
     --lr $LR \
+    --network_module $MODULE \
     --dataroot $DATA_ROOT \
     --train_tmp_result $TRAIN_TMP_RESULT \
     --label_nc $LABEL_NC \

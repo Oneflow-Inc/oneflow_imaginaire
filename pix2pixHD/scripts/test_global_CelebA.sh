@@ -7,7 +7,7 @@ BATCH_SIZE=1
 NETG="global"
 DATA_ROOT="/DATA/disk1/ldp/CelebAMask-HQ"
 LABEL_NC=19
-PRETRAIN_MODEL="./checkpoint_global_CelebA/epoch_17_iter_4800_Gloss_12.928321_Dloss_0.863034"
+PRETRAIN_MODEL="./checkpoint_global_CelebA/epoch_21_iter_1200_Gloss_11.925051_Dloss_0.531606"
 RESULT_DIR="results_CelebA"
 
 if [ ! -d $RESULT_DIR ] ; then

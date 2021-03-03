@@ -10,22 +10,24 @@ BATCH_SIZE=1
 NETG="local"
 NGF=32
 LR=0.000002
+MODULE="models.networks_pipeline_parallel"
 DATA_ROOT="/DATA/disk1/ldp/cityscapes_pix2pixHD"
 CHECKPOINT_DIR="checkpoints_local"
 TRAIN_TMP_RESULT="train_cityscapes_local_tmp_result.jpg"
-LOAD_PRETRAIN="./checkpoints_local/epoch_33_iter_300_Gloss_6.581557_Dloss_0.645471"
+LOAD_PRETRAIN="./checkpoints_local/epoch_42_iter_900_Gloss_5.372544_Dloss_0.719087"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR
 fi
 
-python3 train_of_pix2pixhd_pipeline_parallel.py \
+python3 train_of_pix2pixhd.py \
     --loadSize $LOAD_SIZE \
     --gpu_nums $GPU_NUMS \
     --batchSize $BATCH_SIZE \
     --netG $NETG \
     --ngf $NGF \
     --lr $LR \
+    --network_module $MODULE \
     --dataroot $DATA_ROOT \
     --checkpoints_dir $CHECKPOINT_DIR \
     --train_tmp_result $TRAIN_TMP_RESULT \

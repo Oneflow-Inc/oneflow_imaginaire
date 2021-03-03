@@ -8,9 +8,10 @@ BATCH_SIZE=1
 NETG="global"
 DATA_ROOT="/DATA/disk1/ldp/CelebAMask-HQ"
 LABEL_NC=19
+LR=0.000002
 TRAIN_TMP_RESULT="train_CelebA_global_tmp_result.jpg"
 CHECKPOINT_DIR="checkpoint_global_CelebA"
-LOAD_PRETRAIN="checkpoint_global_CelebA/epoch_11_iter_23100_Gloss_10.468245_Dloss_0.149702"
+LOAD_PRETRAIN="checkpoint_global_CelebA/epoch_19_iter_17100_Gloss_11.887081_Dloss_0.421834"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR
@@ -22,6 +23,7 @@ python3 train_of_pix2pixhd.py \
     --batchSize $BATCH_SIZE \
     --netG $NETG \
     --no_instance \
+    --lr $LR \
     --dataroot $DATA_ROOT \
     --train_tmp_result $TRAIN_TMP_RESULT \
     --label_nc $LABEL_NC \

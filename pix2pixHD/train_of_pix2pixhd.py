@@ -3,6 +3,7 @@ import numpy as np
 import argparse
 import cv2
 import random
+import importlib
 
 import oneflow as flow
 import oneflow.typing as tp
@@ -10,13 +11,14 @@ import oneflow.typing as tp
 import util.util as util
 import util.image_pool as image_pool
 
-import models.networks as networks
 from models.vgg16_model import VGGLoss
 
 from data.aligned_dataset import AlignedDataset
 from options.train_options import TrainOptions
 
 opt = TrainOptions().parse()
+
+networks = importlib.import_module(opt.network_module)
 
 device_type = "gpu" if opt.gpu_nums > 0 else "cpu"
 if device_type == "gpu":
@@ -27,8 +29,6 @@ func_config = flow.FunctionConfig()
 func_config.default_data_type(flow.float)
 func_config.default_logical_view(flow.scope.consistent_view())
 func_config.default_placement_scope(flow.scope.placement("gpu", "0:0"))
-
-# flow.config.enable_debug_mode(True)
 
 # load dataset
 dataset = AlignedDataset()
@@ -115,7 +115,7 @@ if opt.load_pretrain != "":
     flow.load_variables(flow.checkpoint.get(opt.load_pretrain))
 
 for e in range(epoch):
-    e = e + 11
+    e = e + 20
     for i in range(dataset_len):
         data_dict = dataset[i]
 
