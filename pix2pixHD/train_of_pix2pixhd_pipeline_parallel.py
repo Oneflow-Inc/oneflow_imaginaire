@@ -45,26 +45,25 @@ image_channel = opt.input_nc
 def TrainDiscriminator(
     real_image: tp.Numpy.Placeholder((opt.batchSize, image_channel + label_class_num, height, width), dtype = flow.float32),
     fake_image_pool: tp.Numpy.Placeholder((opt.batchSize, image_channel + label_class_num, height, width), dtype = flow.float32)):
-    with flow.scope.placement("gpu", "0:0"):
-        # Calculate GAN loss for discriminator
-        # Fake Detection and Loss
-        pred_fake_pool = networks.MultiscaleDiscriminator(fake_image_pool, ndf=opt.ndf, n_layers=opt.n_layers_D, norm_type=opt.norm,
-                                                        use_sigmoid=False, num_D=opt.num_D, trainable=True, reuse=True)
-        
-        loss_D_fake = networks.GANLoss(pred_fake_pool, False)
+    # Calculate GAN loss for discriminator
+    # Fake Detection and Loss
+    pred_fake_pool = networks.MultiscaleDiscriminator(fake_image_pool, ndf=opt.ndf, n_layers=opt.n_layers_D, norm_type=opt.norm,
+                                                    use_sigmoid=False, num_D=opt.num_D, trainable=True, reuse=True)
+    
+    loss_D_fake = networks.GANLoss(pred_fake_pool, False)
 
-        # Real Detection and Loss
-        pred_real = networks.MultiscaleDiscriminator(real_image, ndf=opt.ndf, n_layers=opt.n_layers_D, norm_type=opt.norm,
-                                                        use_sigmoid=False, num_D=opt.num_D, trainable=True, reuse=True)
-        
-        loss_D_real = networks.GANLoss(pred_real, True)
+    # Real Detection and Loss
+    pred_real = networks.MultiscaleDiscriminator(real_image, ndf=opt.ndf, n_layers=opt.n_layers_D, norm_type=opt.norm,
+                                                    use_sigmoid=False, num_D=opt.num_D, trainable=True, reuse=True)
+    
+    loss_D_real = networks.GANLoss(pred_real, True)
 
-        # Combined loss and calculate gradients
-        loss_D = (loss_D_fake + loss_D_real) * 0.5
+    # Combined loss and calculate gradients
+    loss_D = (loss_D_fake + loss_D_real) * 0.5
 
-        flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beta1).minimize(loss_D)
+    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beta1).minimize(loss_D)
 
-        return loss_D
+    return loss_D
 
 
 @flow.global_function("train", func_config)
@@ -75,37 +74,35 @@ def TrainGenerators(
                                 n_downsample_global=opt.n_downsample_global, n_blocks_global=opt.n_blocks_global,
                                 n_blocks_local=opt.n_blocks_local, norm_type=opt.norm, trainable=True, reuse=True,
                                 train_global_generator = not opt.no_global_generator)
+    # GAN loss (Fake Passability Loss)
+    fake_image_concat_label = flow.concat([label, fake_image], axis=1)
+    pred_fake = networks.MultiscaleDiscriminator(fake_image_concat_label, ndf=opt.ndf, n_layers=opt.n_layers_D, norm_type=opt.norm,
+                                                use_sigmoid=False, num_D=opt.num_D, trainable=False, reuse=True)
+    loss_G_GAN = networks.GANLoss(pred_fake, True)
 
-    with flow.scope.placement("gpu", "0:0"):
-        # GAN loss (Fake Passability Loss)
-        fake_image_concat_label = flow.concat([label, fake_image], axis=1)
-        pred_fake = networks.MultiscaleDiscriminator(fake_image_concat_label, ndf=opt.ndf, n_layers=opt.n_layers_D, norm_type=opt.norm,
-                                                    use_sigmoid=False, num_D=opt.num_D, trainable=False, reuse=True)
-        loss_G_GAN = networks.GANLoss(pred_fake, True)
+    real_image_concat_label = flow.concat([label, image], axis=1)
 
-        real_image_concat_label = flow.concat([label, image], axis=1)
+    pred_real = networks.MultiscaleDiscriminator(real_image_concat_label, ndf=opt.ndf, n_layers=opt.n_layers_D, norm_type=opt.norm,
+                                                use_sigmoid=False, num_D=opt.num_D, trainable=False, reuse=True)
+    
+    # GAN feature matching loss
+    loss_G_GAN_Feat = 0
+    feat_weights = 4.0 / (opt.n_layers_D + 1)
+    D_weights = 1.0 / opt.num_D
+    weight = D_weights * feat_weights * opt.lambda_feat
+    for i in range(opt.num_D):
+        for j in range(len(pred_fake[i])-1):
+            loss_G_GAN_Feat = flow.nn.L1Loss(pred_fake[i][j], pred_real[i][j]) + loss_G_GAN_Feat       
 
-        pred_real = networks.MultiscaleDiscriminator(real_image_concat_label, ndf=opt.ndf, n_layers=opt.n_layers_D, norm_type=opt.norm,
-                                                    use_sigmoid=False, num_D=opt.num_D, trainable=False, reuse=True)
-        
-        # GAN feature matching loss
-        loss_G_GAN_Feat = 0
-        feat_weights = 4.0 / (opt.n_layers_D + 1)
-        D_weights = 1.0 / opt.num_D
-        weight = D_weights * feat_weights * opt.lambda_feat
-        for i in range(opt.num_D):
-            for j in range(len(pred_fake[i])-1):
-                loss_G_GAN_Feat = flow.nn.L1Loss(pred_fake[i][j], pred_real[i][j]) + loss_G_GAN_Feat       
+    # combined loss and calculate gradients
+    loss_G = loss_G_GAN + loss_G_GAN_Feat * weight
 
-        # combined loss and calculate gradients
-        loss_G = loss_G_GAN + loss_G_GAN_Feat * weight
+    if not opt.no_vgg_loss:
+        loss_G = loss_G + VGGLoss(fake_image, image) * opt.lambda_feat
 
-        if not opt.no_vgg_loss:
-            loss_G = loss_G + VGGLoss(fake_image, image) * opt.lambda_feat
+    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beta1).minimize(loss_G)
 
-        flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beta1).minimize(loss_G)
-
-        return fake_image, fake_image_concat_label, real_image_concat_label, loss_G
+    return fake_image, fake_image_concat_label, real_image_concat_label, loss_G
 
 
 fake_pool = image_pool.ImagePool(opt.pool_size)
@@ -117,7 +114,7 @@ if opt.load_pretrain != "":
     flow.load_variables(flow.checkpoint.get(opt.load_pretrain))
 
 for e in range(epoch):
-    e = e + 26
+    e = e + 0
     for i in range(dataset_len):
         data_dict = dataset[i]
 

@@ -7,7 +7,8 @@ BATCH_SIZE=1
 NETG="local"
 NGF=32
 DATA_ROOT="./datasets/cityscapes"
-PRETRAIN_MODEL="./checkpoints_local/epoch_28_iter_300_Gloss_6.609044_Dloss_0.682805"
+# PRETRAIN_MODEL="./checkpoints_local/epoch_39_iter_1500_Gloss_5.033952_Dloss_0.704229"
+PRETRAIN_MODEL="./checkpoints_local/epoch_41_iter_2400_Gloss_6.147730_Dloss_0.699599"
 RESULT_DIR="results_local"
 
 if [ ! -d $RESULT_DIR ] ; then

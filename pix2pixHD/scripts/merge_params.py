@@ -1,9 +1,9 @@
 import os
 import shutil
 
-local_params_dir = "checkpoints_local_only/epoch_8_iter_900_Gloss_9.246778_Dloss_0.012707/"
-global_params_dir = "checkpoints/epoch_78_iter_2100_Gloss_7.245208_Dloss_0.941353/"
-result_dir = "./checkpoints_local/merge_local_only_epoch_8_global_epoch_78/"
+local_params_dir = "checkpoint_local_CelebA_only/epoch_5_iter_13800_Gloss_8.562819_Dloss_0.007365/"
+global_params_dir = "checkpoint_global_CelebA/epoch_17_iter_8400_Gloss_9.519454_Dloss_1.200356/"
+result_dir = "./checkpoint_local_CelebA/merge_local_only_epoch_5_global_epoch_17/"
 
 local_params = os.listdir(local_params_dir)
 global_params = os.listdir(global_params_dir)

@@ -115,7 +115,7 @@ if opt.load_pretrain != "":
     flow.load_variables(flow.checkpoint.get(opt.load_pretrain))
 
 for e in range(epoch):
-    e = e + 4
+    e = e + 11
     for i in range(dataset_len):
         data_dict = dataset[i]
 

@@ -13,7 +13,7 @@ LR=0.000002
 DATA_ROOT="/DATA/disk1/ldp/cityscapes_pix2pixHD"
 CHECKPOINT_DIR="checkpoints_local"
 TRAIN_TMP_RESULT="train_cityscapes_local_tmp_result.jpg"
-LOAD_PRETRAIN="./checkpoints_local/epoch_26_iter_600_Gloss_5.857212_Dloss_0.814388"
+LOAD_PRETRAIN="./checkpoints_local/epoch_33_iter_300_Gloss_6.581557_Dloss_0.645471"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR

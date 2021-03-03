@@ -10,7 +10,7 @@ DATA_ROOT="/DATA/disk1/ldp/CelebAMask-HQ"
 LABEL_NC=19
 TRAIN_TMP_RESULT="train_CelebA_global_tmp_result.jpg"
 CHECKPOINT_DIR="checkpoint_global_CelebA"
-LOAD_PRETRAIN="checkpoint_global_CelebA/epoch_3_iter_9600_Gloss_11.303256_Dloss_0.551824"
+LOAD_PRETRAIN="checkpoint_global_CelebA/epoch_11_iter_23100_Gloss_10.468245_Dloss_0.149702"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR
