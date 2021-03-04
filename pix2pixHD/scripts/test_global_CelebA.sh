@@ -5,10 +5,11 @@ LOAD_SIZE=512
 GPU_NUMS=1
 BATCH_SIZE=1
 NETG="global"
-DATA_ROOT="/DATA/disk1/ldp/CelebAMask-HQ"
+DATA_ROOT="/home/ldpe2g/oneFlow/OtherProjects/CelebAMask-HQ/MaskGAN_demo/CelebA_HQ"
 LABEL_NC=19
-PRETRAIN_MODEL="./checkpoint_global_CelebA/epoch_21_iter_1200_Gloss_11.925051_Dloss_0.531606"
+PRETRAIN_MODEL="./CelebAHQ_global"
 RESULT_DIR="results_CelebA"
+
 
 if [ ! -d $RESULT_DIR ] ; then
   mkdir -p $RESULT_DIR
