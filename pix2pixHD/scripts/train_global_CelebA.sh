@@ -11,7 +11,7 @@ LABEL_NC=19
 LR=0.000002
 TRAIN_TMP_RESULT="train_CelebA_global_tmp_result.jpg"
 CHECKPOINT_DIR="checkpoint_global_CelebA"
-LOAD_PRETRAIN="checkpoint_global_CelebA/epoch_19_iter_17100_Gloss_11.887081_Dloss_0.421834"
+LOAD_PRETRAIN="checkpoint_global_CelebA/epoch_25_iter_14400_Gloss_12.302824_Dloss_0.349404"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR

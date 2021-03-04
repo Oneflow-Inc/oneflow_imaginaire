@@ -14,7 +14,7 @@ MODULE="models.networks_pipeline_parallel"
 DATA_ROOT="/DATA/disk1/ldp/cityscapes_pix2pixHD"
 CHECKPOINT_DIR="checkpoints_local"
 TRAIN_TMP_RESULT="train_cityscapes_local_tmp_result.jpg"
-LOAD_PRETRAIN="./checkpoints_local/epoch_42_iter_900_Gloss_5.372544_Dloss_0.719087"
+LOAD_PRETRAIN="./checkpoints_local/epoch_49_iter_600_Gloss_5.378968_Dloss_0.830781"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR

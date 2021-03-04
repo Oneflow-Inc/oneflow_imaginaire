@@ -150,8 +150,7 @@ def LocalEnhancer(input, output_nc, ngf=32, n_downsample_global=3, n_blocks_glob
                 if train_global_generator:
                     out = out + output_prev
 
-            with flow.scope.placement("gpu", "0:1"): # for CelebA-HQ
-            # with flow.scope.placement("gpu", "0:2"): # for cityscapes
+            with flow.scope.placement("gpu", "0:2"): # for cityscapes
                 ### residual blocks
                 for i in range(n_blocks_local):
                     out = ResnetBlock(out, "resblock_%d" % i, ngf * 2, norm_type=norm_layer, trainable=trainable, reuse=reuse)
