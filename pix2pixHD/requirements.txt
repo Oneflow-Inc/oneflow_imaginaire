@@ -1,0 +1,7 @@
+Pillow==7.0.0
+numpy==1.19.5
+opencv-python==4.2.0.34
+PyQt5==5.15.3
+PyQt5-Qt==5.15.2
+PyQt5-sip==12.8.
+PyYAML==5.3.1
