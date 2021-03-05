@@ -45,23 +45,37 @@ screenshots
 ## Testing
 ### Pretrain models
 
-Download the `Cityscapes` and `CelebAMask-HQ` pretrain models with:
+Download the `Cityscapes` and `CelebAMask-HQ` pretrain models:
 
 ```bash
 wget https://oneflow-public.oss-cn-beijing.aliyuncs.com/model_zoo/cv/gan/pix2pixHD_pertrain_model.tar.gz
+tar zxf pix2pixHD_pertrain_model.tar.gz
+ls pix2pixHD_pertrain_model
+# CelebA_pretrain  Cityscapes_pretrain
+mv pix2pixHD_pertrain_model/CelebA_pretrain .
+mv pix2pixHD_pertrain_model/Cityscapes_pretrain .
 ```
 
-### Testing on Cityscapes or CelebAMask-HQ
+### Testing on Cityscapes
 
-Set the downloaded pretrain model path on scripts `scripts/test_local_cityscapes.sh` or `scripts/test_global_CelebA.sh` and run:
+Set the downloaded pretrain model path and run script `scripts/test_local_cityscapes.sh`:
 
 ```
-PRETRAIN_MODEL=""
+PRETRAIN_MODEL="./Cityscapes_pretrain/epoch_56_iter_1200_Gloss_5.284343_Dloss_0.841812"
+```
+
+### Testing on CelebAMask-HQ
+
+Set the downloaded pretrain model path and run script `scripts/test_global_CelebA.sh`:
+
+```
+PRETRAIN_MODEL="./CelebA_pretrain/epoch_33_iter_3900_Gloss_11.698519_Dloss_0.452646"
 ```
 
 ### Run demo of interactive facial image manipulation
 
-Also set the `PRETRAIN_MODEL` path in script `scripts/run_face_mask_edit.sh` and run.
+Also set the `PRETRAIN_MODEL` variable in script `scripts/run_face_mask_edit.sh` the same as `scripts/test_global_CelebA.sh` and run.
+
 ## Training
 
 First download the VGG16 pretrain model:
@@ -142,6 +156,9 @@ CUDA_VISIBLE_DEVICES=0,1,2 bash scripts/train_local_cityscapes.sh
 ```bash
 bash scripts/train_global_CelebA.sh
 ```
+
+If you want to train on full dataset, you can refer to [CelebAMask-HQ](https://github.com/switchablenorms/CelebAMask-HQ).
+
 
 
 
