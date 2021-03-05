@@ -9,12 +9,12 @@ GPU_NUMS=3
 BATCH_SIZE=1
 NETG="local"
 NGF=32
-LR=0.000002
+LR=0.0000002
 MODULE="models.networks_pipeline_parallel"
 DATA_ROOT="/DATA/disk1/ldp/cityscapes_pix2pixHD"
 CHECKPOINT_DIR="checkpoints_local"
 TRAIN_TMP_RESULT="train_cityscapes_local_tmp_result.jpg"
-LOAD_PRETRAIN="./checkpoints_local/epoch_49_iter_600_Gloss_5.378968_Dloss_0.830781"
+LOAD_PRETRAIN="./checkpoints_local/epoch_56_iter_1500_Gloss_4.810637_Dloss_0.721995"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR

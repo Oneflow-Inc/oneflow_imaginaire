@@ -8,8 +8,12 @@ NETG="local"
 NGF=32
 DATA_ROOT="./datasets/cityscapes"
 # PRETRAIN_MODEL="./checkpoints_local/epoch_49_iter_0_Gloss_5.615729_Dloss_0.677637"
-PRETRAIN_MODEL="./checkpoints_local/epoch_50_iter_2100_Gloss_5.392593_Dloss_0.694629"
-RESULT_DIR="results_local_50"
+# PRETRAIN_MODEL="./checkpoints_local/epoch_50_iter_2100_Gloss_5.392593_Dloss_0.694629"
+# PRETRAIN_MODEL="./checkpoints_local/epoch_54_iter_2400_Gloss_5.805898_Dloss_0.690441"
+# PRETRAIN_MODEL="./checkpoints_local/epoch_56_iter_1500_Gloss_4.810637_Dloss_0.721995"
+PRETRAIN_MODEL="./checkpoints_local/epoch_57_iter_1500_Gloss_5.618986_Dloss_0.729773"
+
+RESULT_DIR="results_local_57"
 
 if [ ! -d $RESULT_DIR ] ; then
   mkdir -p $RESULT_DIR
