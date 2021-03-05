@@ -6,7 +6,7 @@ GPU_NUMS=1
 BATCH_SIZE=1
 NETG="global"
 DATA_ROOT="./datasets/cityscapes"
-PRETRAIN_MODEL="./checkpoints/opech_94_iter_1500_Gloss_6.976357_Dloss_0.474898"
+PRETRAIN_MODEL=""
 RESULT_DIR="results"
 
 if [ ! -d $RESULT_DIR ] ; then

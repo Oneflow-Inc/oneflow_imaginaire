@@ -6,12 +6,12 @@ LOAD_SIZE=512
 GPU_NUMS=1
 BATCH_SIZE=1
 NETG="global"
-DATA_ROOT="/DATA/disk1/ldp/CelebAMask-HQ"
+DATA_ROOT="./datasets/CelebA_HQ"
 LABEL_NC=19
-LR=0.000002
+LR=0.00002
 TRAIN_TMP_RESULT="train_CelebA_global_tmp_result.jpg"
 CHECKPOINT_DIR="checkpoint_global_CelebA"
-LOAD_PRETRAIN="checkpoint_global_CelebA/epoch_30_iter_18300_Gloss_10.811640_Dloss_0.474718"
+LOAD_PRETRAIN="vgg16_of_best_model_val_top1_721"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR

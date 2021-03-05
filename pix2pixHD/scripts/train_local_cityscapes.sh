@@ -2,7 +2,7 @@ set -xue
 
 #### train pix2pixHD full generative networks (local + global) 
 #### with pipeline parallelism on 3 devices with device memory bigger than 10G.
-#### run this scirpt with `CUDA_VISIBLE_DEVICES=0,1,2 bash scripts/train_local.sh`
+#### run this scirpt with `CUDA_VISIBLE_DEVICES=0,1,2 bash scripts/train_local_cityscapes.sh`
 
 LOAD_SIZE=2048
 GPU_NUMS=3
@@ -11,10 +11,10 @@ NETG="local"
 NGF=32
 LR=0.0000002
 MODULE="models.networks_pipeline_parallel"
-DATA_ROOT="/DATA/disk1/ldp/cityscapes_pix2pixHD"
+DATA_ROOT="./datasets/cityscapes"
 CHECKPOINT_DIR="checkpoints_local"
 TRAIN_TMP_RESULT="train_cityscapes_local_tmp_result.jpg"
-LOAD_PRETRAIN="./checkpoints_local/epoch_56_iter_1500_Gloss_4.810637_Dloss_0.721995"
+LOAD_PRETRAIN="vgg16_of_best_model_val_top1_721"
 
 if [ ! -d $CHECKPOINT_DIR ] ; then
   mkdir -p $CHECKPOINT_DIR
