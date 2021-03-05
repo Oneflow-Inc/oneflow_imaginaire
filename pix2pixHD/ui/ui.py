@@ -78,7 +78,12 @@ class Ui_Form(object):
         self.pushButton_25 = QtWidgets.QPushButton(Form)
         self.pushButton_25.setGeometry(QtCore.QRect(1410, 40, 97, 27))
         self.pushButton_25.setObjectName("pushButton_25")
-
+        self.pushButton_26 = QtWidgets.QPushButton(Form)
+        self.pushButton_26.setGeometry(QtCore.QRect(1530, 10, 97, 27))
+        self.pushButton_26.setObjectName("pushButton_26")
+        self.pushButton_27 = QtWidgets.QPushButton(Form)
+        self.pushButton_27.setGeometry(QtCore.QRect(1530, 40, 97, 27))
+        self.pushButton_27.setObjectName("pushButton_27")
 
         self.graphicsView = QtWidgets.QGraphicsView(Form)
         self.graphicsView.setGeometry(QtCore.QRect(20, 120, 512, 512))
@@ -113,6 +118,8 @@ class Ui_Form(object):
         self.pushButton_23.clicked.connect(Form.neck_l_mode)
         self.pushButton_24.clicked.connect(Form.neck_mode)
         self.pushButton_25.clicked.connect(Form.cloth_mode)
+        self.pushButton_26.clicked.connect(Form.increase)
+        self.pushButton_27.clicked.connect(Form.decrease)
 
         QtCore.QMetaObject.connectSlotsByName(Form)
 
@@ -143,6 +150,8 @@ class Ui_Form(object):
         self.pushButton_23.setText(_translate("Form", "Necklace"))
         self.pushButton_24.setText(_translate("Form", "Neck"))
         self.pushButton_25.setText(_translate("Form", "Cloth"))
+        self.pushButton_26.setText(_translate("Form", "+"))
+        self.pushButton_27.setText(_translate("Form", "-"))
 
 if __name__ == "__main__":
     import sys

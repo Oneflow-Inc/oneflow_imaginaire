@@ -164,6 +164,14 @@ class Ex(QWidget, Ui_Form):
 
     def cloth_mode(self):
         self.scene.mode = 18
+    
+    def increase(self):
+        if self.scene.size < 15:
+            self.scene.size += 1
+    
+    def decrease(self):
+        if self.scene.size > 1:
+            self.scene.size -= 1 
 
     def edit(self):
         print("fake")
