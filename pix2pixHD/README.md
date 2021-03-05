@@ -6,19 +6,26 @@ This work is based on the repo: [pix2pixHD](https://github.com/NVIDIA/pix2pixHD)
 ## Some Results
 
 ### Cityscapes
-Jointly train the local and global nets for 56 epoches:
+First train the global net for 78 epoches. And then jointly train the local enhancer and global net for 56 epoches:
 
-images
+<div align='center'>
+  <img src='results/cityscapes.png'>
+</div>
+
 
 ### CelebA-HQ
 
-Jointly train the local and global nets for 33 epoches:
+Only train the global nets for 33 epoches:
+<div align='center'>
+  <img src='results/CelebAMask-HQ.png '>
+</div>
 
-images
+
 
 ### Demo of interactive facial image manipulation
 
-gif
+screenshots
+<img src="results/demo.gif"/>
 
 
 ## Tested on
