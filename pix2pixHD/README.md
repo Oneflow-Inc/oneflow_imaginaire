@@ -1,12 +1,12 @@
 # Implementation of [pix2pixHD](https://arxiv.org/pdf/1711.11585.pdf) with [Oneflow](https://github.com/Oneflow-inc/oneflow) framework.
 
-This work is based on the repo: [pix2pixHD](https://github.com/NVIDIA/pix2pixHD) and [CelebAMask-HQ](https://github.com/switchablenorms/CelebAMask-HQ).
+This work is based on two repo: [pix2pixHD](https://github.com/NVIDIA/pix2pixHD) and [CelebAMask-HQ](https://github.com/switchablenorms/CelebAMask-HQ).
 
 
-## Some Results
+## Results
 
 ### Cityscapes
-First train the global net for 78 epoches. And then jointly train the local enhancer and global net for 56 epoches:
+First train the global net for 78 epoches and then jointly train the local enhancer and global net for 56 epoches:
 
 <div align='center'>
   <img src='results/cityscapes.png'>
@@ -24,11 +24,10 @@ Only train the global nets for 33 epoches:
 
 ### Demo of interactive facial image manipulation
 
-screenshots
 <img src="results/demo.gif"/>
 
 
-## Tested on
+## Environment
 | Spec                        |                                                             |
 |-----------------------------|-------------------------------------------------------------|
 | GPU                         | Nvidia TITAN V                                              |
@@ -72,26 +71,30 @@ Set the downloaded pretrain model path and run script `scripts/test_global_Celeb
 PRETRAIN_MODEL="./CelebA_pretrain/epoch_33_iter_3900_Gloss_11.698519_Dloss_0.452646"
 ```
 
-### Run demo of interactive facial image manipulation
+### Run the interactive facial image manipulation demo
 
-Also set the `PRETRAIN_MODEL` variable in script `scripts/run_face_mask_edit.sh` the same as `scripts/test_global_CelebA.sh` and run.
+Set the `PRETRAIN_MODEL` variable in script `scripts/run_face_mask_edit.sh` the same as `scripts/test_global_CelebA.sh` and then run:
+
+```bash
+scripts/run_face_mask_edit.sh
+```
 
 ## Training
 
-First download the VGG16 pretrain model:
+Download the VGG16 pretrained model:
 ```bash
 wget https://oneflow-public.oss-cn-beijing.aliyuncs.com/model_zoo/vgg16_of_best_model_val_top1_721.zip
 ```
 ### Training on Cityscapes task
 
-#### First, train the global net and local enhancer seperately
+#### 1. Train the global net and local enhancer seperately
 
 Train global net, remember to set the right VGG16 model path:
 ```bash
 bash scripts/train_global_cityscapes.sh
 ```
 
-Train local enhancer only, first uncomment the last line of script `scripts/train_local_cityscapes.sh`:
+Train local enhancer, uncomment the last line of script `scripts/train_local_cityscapes.sh`:
 
 ```bash
 python3 train_of_pix2pixhd.py \
@@ -117,15 +120,9 @@ to make sure only train the local enhancer.
 CUDA_VISIBLE_DEVICES=0,1 bash scripts/train_local_cityscapes.sh
 ```
 
-#### Second, jointly train the local enhancer and global net
+#### 2. jointly train the local enhancer and global net
 
-first, merge the local and global checkpoints together with script:
-
- ```bash
-python3 scripts/merge_params.py
- ```
- 
-and then comment the last line of script `scripts/train_local_cityscapes.sh` and set the `LOAD_PRETRAIN` to the merged checkpoint path:
+Merge the local and global checkpoints together with script `scripts/merge_params.py`. And then set the `LOAD_PRETRAIN` to the merged checkpoint path. Also, remember to comment the last line of script `scripts/train_local_cityscapes.sh`:
 
 ```bash
 python3 train_of_pix2pixhd.py \
@@ -145,7 +142,7 @@ python3 train_of_pix2pixhd.py \
                               ### `train_of_pix2pixhd_pipeline_parallel.py` script
 ```
 
-last, make sure that each GPU has at least 10G memory and run:
+Before running the script, make sure that each GPU has at least 10G memory:
 
 ```bash
 CUDA_VISIBLE_DEVICES=0,1,2 bash scripts/train_local_cityscapes.sh
@@ -157,7 +154,7 @@ CUDA_VISIBLE_DEVICES=0,1,2 bash scripts/train_local_cityscapes.sh
 bash scripts/train_global_CelebA.sh
 ```
 
-If you want to train on full dataset, you can refer to [CelebAMask-HQ](https://github.com/switchablenorms/CelebAMask-HQ).
+If you want to train on full `CelebAMask-HQ` dataset, you can refer to [CelebAMask-HQ](https://github.com/switchablenorms/CelebAMask-HQ).
 
 
 
