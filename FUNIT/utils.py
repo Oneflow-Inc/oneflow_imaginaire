@@ -24,7 +24,8 @@ def conv2d_layer(
     input, out_channel, kernel_size=3, strides=1, padding="SAME", 
     data_format="NCHW", dilation_rate=1, use_bias=True, 
     weight_initializer=flow.random_normal_initializer(mean=0.0, stddev=0.02), 
-    bias_initializer=flow.zeros_initializer(), name="conv2d"
+    bias_initializer=flow.zeros_initializer(), name="conv2d", 
+    trainable=None
 ): 
 
     weight_shape = (out_channel, input.shape[1], kernel_size, kernel_size)
@@ -32,8 +33,10 @@ def conv2d_layer(
     with flow.scope.namespace(name):
         weight = flow.get_variable(
             "weight", 
-            shape=weight_shape, dtype=input.dtype, 
-            initializer=weight_initializer
+            shape=weight_shape, 
+            dtype=input.dtype, 
+            initializer=weight_initializer, 
+            trainable=trainable
         )
 
     output = flow.nn.conv2d(
@@ -43,8 +46,10 @@ def conv2d_layer(
         with flow.scope.namespace(name):
             bias = flow.get_variable(
                 "bias", 
-                shape=(out_channel,), dtype=input.dtype, 
-                initializer=bias_initializer
+                shape=(out_channel,), 
+                dtype=input.dtype, 
+                initializer=bias_initializer, 
+                trainable=trainable
             )
 
         output = flow.nn.bias_add(output, bias, data_format)
@@ -55,7 +60,8 @@ def conv2d_layer(
 def dense_layer(
     input, units, use_bias=True, 
     weight_initializer=flow.zeros_initializer(),
-    bias_initializer=flow.zeros_initializer(), name="dense"
+    bias_initializer=flow.zeros_initializer(), name="dense", 
+    trainable=None
 ):
 
     weight_shape = (units, input.shape[1])
@@ -63,8 +69,10 @@ def dense_layer(
     with flow.scope.namespace(name):
         weight = flow.get_variable(
             "weight", 
-            shape=weight_shape, dtype=input.dtype, 
-            initializer=weight_initializer
+            shape=weight_shape, 
+            dtype=input.dtype, 
+            initializer=weight_initializer, 
+            trainable=trainable
         )
 
     out = flow.matmul(input, weight, transpose_b=True)
@@ -73,8 +81,10 @@ def dense_layer(
         with flow.scope.namespace(name):
             bias = flow.get_variable(
                 "bias", 
-                shape=(units,), dtype=input.dtype, 
-                initializer=bias_initializer
+                shape=(units,), 
+                dtype=input.dtype, 
+                initializer=bias_initializer, 
+                trainable=trainable
             )
 
         out = flow.nn.bias_add(out, bias)
@@ -82,14 +92,20 @@ def dense_layer(
     return out
 
 
-def embedding_layer(indices, num_embeddings, embedding_dim, name="embedding"):
+def embedding_layer(
+    indices, num_embeddings, 
+    embedding_dim, name="embedding", 
+    trainable=None
+):
     weight_shape = (num_embeddings, embedding_dim)
 
     with flow.scope.namespace(name):
         weight = flow.get_variable(
             "weight", 
-            shape=weight_shape, dtype=flow.float32, 
-            initializer=flow.random_normal_initializer()
+            shape=weight_shape, 
+            dtype=flow.float32, 
+            initializer=flow.random_normal_initializer(), 
+            trainable=trainable
         )
 
         out = flow.gather(params=weight, indices=indices, axis=0)

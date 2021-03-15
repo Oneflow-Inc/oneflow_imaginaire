@@ -252,11 +252,15 @@ if __name__ == "__main__":
     ):
 
         def encode(images):
+            # images: (N, 3, H, W)
+
+            # content: (N, 256, H // 16, W // 16)
             content = ContentEncoder(
                 images, num_downsamples_content, num_res_blocks, num_image_channels,
                 num_filters, "reflect", "instance", weight_norm_type, "relu"
             )
 
+            # style: (N, 64, 1, 1)
             style = StyleEncoder(
                 images, num_downsamples_style, num_filters, style_dims, 
                 "reflect", "none", weight_norm_type, "relu"
@@ -265,13 +269,20 @@ if __name__ == "__main__":
             return content, style
 
         def decode(content, style):
+            # content: (N, 256, H // 16, W // 16)
+            # style: (N, 64, 1, 1)
+
+            # style: (N, 64)
+            # flow.reshape(style, [style.shape[0], -1])
             style = flow.squeeze(style, axis=[2, 3])
 
+            # style: (N, 256)
             style = MLP(
                 style, num_filters_mlp, num_filters_mlp, 
                 num_mlp_blocks, "none", "relu"
             )
 
+            # images: (N, 3, 256, 256)
             images = Decoder(
                 content, style, content.shape[1], num_image_channels,
                 num_downsamples_content, "reflect", weight_norm_type, "relu"

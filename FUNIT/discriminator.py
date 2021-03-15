@@ -6,7 +6,7 @@ import utils
 def ResDiscriminator(
     input, labels=None, num_classes=119, num_filters=64, max_num_filters=1024, 
     num_layers=6, padding_mode="reflect", weight_norm_type="", 
-    name="ResDiscriminator"
+    name="ResDiscriminator", trainable=None
 ):
 
     assert padding_mode == "reflect"
@@ -21,14 +21,16 @@ def ResDiscriminator(
             out = flow.nn.leaky_relu(out, alpha=0.2)
             out = flow.reflection_pad2d(out, padding=1)
             out = utils.conv2d_layer(
-                out, num_filters, 3, 1, "VALID", name=namer("conv")
+                out, num_filters, 3, 1, "VALID", 
+                name=namer("conv"), trainable=trainable
             )
 
         if input.shape == out.shape:
             return input + out
         else:
             shortcut_out = utils.conv2d_layer(
-                input, num_filters, 1, 1, "VALID", name=namer("conv")
+                input, num_filters, 1, 1, "VALID", 
+                name=namer("conv"), trainable=trainable
             )
             return shortcut_out + out
 
@@ -36,7 +38,8 @@ def ResDiscriminator(
     with flow.scope.namespace(name):
         out = flow.reflection_pad2d(out, padding=3)
         out = utils.conv2d_layer(
-            out, num_filters, 7, 1, "VALID", name=namer("conv")
+            out, num_filters, 7, 1, "VALID", 
+            name=namer("conv"), trainable=trainable
         )
         
         for i in range(num_layers):
@@ -59,12 +62,14 @@ def ResDiscriminator(
             return features_1x1
 
         embeddings = utils.embedding_layer(
-            labels, num_classes, num_filters, name=namer("embedding")
+            labels, num_classes, num_filters, 
+            name=namer("embedding"), trainable=trainable
         )
 
         outputs = flow.nn.leaky_relu(features, alpha=0.2)
         outputs = utils.conv2d_layer(
-            outputs, 1, 1, 1, "VALID", name=namer("conv")
+            outputs, 1, 1, 1, "VALID", 
+            name=namer("conv"), trainable=trainable
         )
         feat = flow.math.reduce_sum(
             embeddings * features_1x1, axis=1, keepdims=True
@@ -101,7 +106,7 @@ if __name__ == "__main__":
     images = np.random.uniform(-10, 10, (batch, 3, width, width)).astype(np.float32)
     out = test_job1(images)
 
-    print(out.shape)
+    print(out.shape) # (1, 1024)
 
     images = np.random.uniform(-10, 10, (batch, 3, width, width)).astype(np.float32)
     labels = np.random.uniform(0, 119, (batch,)).astype(np.int32)
