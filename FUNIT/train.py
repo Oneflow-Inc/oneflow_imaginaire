@@ -19,6 +19,7 @@ if __name__ == "__main__":
 
     num_gpus = opt.num_gpus
     assert num_gpus in [1, 2]
+    flow.config.gpu_device_num(num_gpus)
 
     N = opt.batch_size
     C = opt.num_image_channels
