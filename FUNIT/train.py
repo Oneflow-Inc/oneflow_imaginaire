@@ -168,8 +168,8 @@ if __name__ == "__main__":
 
             # loss
             gan_loss = 0.5 * (
-                L.GANloss(fake_out_trans, True, dis_update=False) + 
-                L.GANloss(fake_out_recon, True, dis_update=False)
+                L.GANloss(fake_out_trans, t_real=True, dis_update=False) + 
+                L.GANloss(fake_out_recon, t_real=True, dis_update=False)
             )
 
             image_recon_loss = L.image_recon_loss(
@@ -218,8 +218,8 @@ if __name__ == "__main__":
             )
 
             loss = (
-                L.GANloss(real_out_style, True, dis_update=True) + 
-                L.GANloss(fake_out_trans, False, dis_update=True)
+                L.GANloss(real_out_style, t_real=True, dis_update=True) + 
+                L.GANloss(fake_out_trans, t_real=False, dis_update=True)
             )
 
             scheduler = flow.optimizer.PiecewiseConstantScheduler([], [learning_rate])
@@ -229,8 +229,8 @@ if __name__ == "__main__":
 
     images_content = np.random.uniform(-10, 10, (N, C, H, W)).astype(np.float32)
     images_style = np.random.uniform(-10, 10, (N, C, H, W)).astype(np.float32)
-    labels_content = np.random.uniform(0, 119, (N,)).astype(np.int32)
-    labels_style = np.random.uniform(0, 119, (N,)).astype(np.int32)
+    labels_content = np.random.uniform(0, opt.label_nc, (N,)).astype(np.int32)
+    labels_style = np.random.uniform(0, opt.label_nc, (N,)).astype(np.int32)
 
     for epoch in range(opt.epoch):
         images_trans, loss_G = TrainGenerator(

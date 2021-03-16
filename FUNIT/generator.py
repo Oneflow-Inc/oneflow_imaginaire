@@ -18,30 +18,39 @@ def StyleEncoder(
     def Conv2dBlock(input, num_filters, kernel_size, strides, padding):
         out = flow.reflection_pad2d(input, padding=padding)
         out = utils.conv2d_layer(
-            out, num_filters, kernel_size, strides, 
-            "VALID", name=namer("conv")
+            out, num_filters=num_filters, kernel_size=kernel_size, 
+            strides=strides, padding="VALID", name=namer("conv")
         )
         out = flow.nn.relu(out)
         return out
 
     out = input
     with flow.scope.namespace(name):
-        out = Conv2dBlock(out, num_filters, 7, 1, 3)
+        out = Conv2dBlock(
+            out, num_filters=num_filters, 
+            kernel_size=7, strides=1, padding=3
+        )
         
         for _ in range(2):
             num_filters *= 2
-            out = Conv2dBlock(out, num_filters, 4, 2, 1)
+            out = Conv2dBlock(
+                out, num_filters=num_filters, 
+                kernel_size=4, strides=2, padding=1
+            )
         
         for _ in range(num_downsamples - 2):
-            out = Conv2dBlock(out, num_filters, 4, 2, 1)
+            out = Conv2dBlock(
+                out, num_filters=num_filters, 
+                kernel_size=4, strides=2, padding=1
+            )
 
         # AdaptiveAvgPool2D(1)
-        out = flow.reshape(out, [*out.shape[:2], 1, -1])
-        out = flow.math.reduce_mean(out, 3, keepdims=True)
+        out = flow.reshape(out, shape=[*out.shape[:2], 1, -1])
+        out = flow.math.reduce_mean(out, axis=3, keepdims=True)
 
         out = utils.conv2d_layer(
-            out, style_channels, 1, 1, "VALID", 
-            use_bias=False, name=namer("conv")
+            out, num_filters=style_channels, kernel_size=1, strides=1, 
+            padding="VALID", use_bias=False, name=namer("conv")
         )
 
     return out
@@ -65,8 +74,8 @@ def ContentEncoder(
 
         out = flow.reflection_pad2d(out, padding=padding)
         out = utils.conv2d_layer(
-            out, num_filters, kernel_size, strides, "VALID", 
-            name=namer("conv")
+            out, num_filters=num_filters, kernel_size=kernel_size, 
+            strides=strides, padding="VALID", name=namer("conv")
         )
         out = flow.nn.InstanceNorm2d(out, affine=True)
         out = flow.nn.relu(out)
@@ -79,7 +88,8 @@ def ContentEncoder(
         for _ in range(2):
             out = flow.reflection_pad2d(out, padding=1)
             out = utils.conv2d_layer(
-                out, num_filters, 3, 1, "VALID", name=namer("conv")
+                out, num_filters=num_filters, kernel_size=3, 
+                strides=1, padding="VALID", name=namer("conv")
             )
             out = flow.nn.InstanceNorm2d(out, affine=True)
             out = flow.nn.relu(out)
@@ -88,20 +98,27 @@ def ContentEncoder(
             return input + out
         else:
             shortcut_out = utils.conv2d_layer(
-                input, num_filters, 1, 1, "VALID", name=namer("conv")
+                input, num_filters=num_filters, kernel_size=1, 
+                strides=1, padding="VALID", name=namer("conv")
             )
             return shortcut_out + out
 
     out = input
     with flow.scope.namespace(name):
-        out = Conv2dBlock(out, num_filters, 7, 1, 3)
+        out = Conv2dBlock(
+            out, num_filters=num_filters, 
+            kernel_size=7, strides=1, padding=3
+        )
 
         for _ in range(num_downsamples):
             num_filters *= 2
-            out = Conv2dBlock(out, num_filters, 4, 2, 1)
+            out = Conv2dBlock(
+                out, num_filters=num_filters, 
+                kernel_size=4, strides=2, padding=1
+            )
 
         for _ in range(num_res_blocks):
-            out = Res2dBlock(out, num_filters)
+            out = Res2dBlock(out, num_filters=num_filters)
 
     return out
 
@@ -118,16 +135,16 @@ def MLP(
     namer = utils.namer_factory()
 
     def LinearBlock(input, out_features):
-        out = utils.dense_layer(input, out_features, name=namer("dense"))
+        out = utils.dense_layer(input, units=out_features, name=namer("dense"))
         out = flow.nn.relu(out)
         return out
 
     out = input
     with flow.scope.namespace(name):
         for _ in range(num_layers - 2):
-            out = LinearBlock(out, latent_dim)
+            out = LinearBlock(out, out_features=latent_dim)
 
-        out = LinearBlock(out, output_dim)
+        out = LinearBlock(out, out_features=output_dim)
     
     return out
 
@@ -152,15 +169,16 @@ def Decoder(
         out1 = flow.nn.InstanceNorm2d(input, affine=False)
 
         out2 = utils.dense_layer(
-            style, input.shape[1] * 2, use_bias=False, name=namer("dense"))
+            style, units=input.shape[1] * 2, 
+            use_bias=False, name=namer("dense"))
 
         gamma = flow.slice(out2, begin=[None, 0], size=[None, input.shape[1]])
-        gamma = flow.reshape(gamma, (*gamma.shape, 1, 1))
+        gamma = flow.reshape(gamma, shape=(*gamma.shape, 1, 1))
 
         beta = flow.slice(
             out2, begin=[None, input.shape[1]], size=[None, input.shape[1]]
         )
-        beta = flow.reshape(gamma, (*beta.shape, 1, 1))
+        beta = flow.reshape(gamma, shape=(*beta.shape, 1, 1))
 
         return out1 * (1 + gamma) + beta
 
@@ -170,7 +188,8 @@ def Decoder(
         for _ in range(2):
             out = flow.reflection_pad2d(out, padding=1)
             out = utils.conv2d_layer(
-                out, num_filters, 3, 1, "VALID", name=namer("conv")
+                out, num_filters=num_filters, kernel_size=3, 
+                strides=1, padding="VALID", name=namer("conv")
             )
             out = AdaptiveNorm(out, style)
             out = flow.nn.relu(out)
@@ -179,14 +198,16 @@ def Decoder(
             return input + out
         else:
             shortcut_out = utils.conv2d_layer(
-                input, num_filters, 1, 1, "VALID", name=namer("conv")
+                input, num_filters=num_filters, kernel_size=1, 
+                strides=1, padding="VALID", name=namer("conv")
             )
             return shortcut_out + out
 
     def base_up_res_block(input, style, num_filters):
         out = flow.reflection_pad2d(input, padding=2)
         out = utils.conv2d_layer(
-            out, num_filters, 5, 1, "VALID", name=namer("conv")
+            out, num_filters=num_filters, kernel_size=5, 
+            strides=1, padding="VALID", name=namer("conv")
         )
         out = AdaptiveNorm(out, style)
         out = flow.nn.relu(out)
@@ -197,7 +218,8 @@ def Decoder(
 
         out = flow.reflection_pad2d(out, padding=2)
         out = utils.conv2d_layer(
-            out, num_filters, 5, 1, "VALID", name=namer("conv")
+            out, num_filters=num_filters, kernel_size=5, 
+            strides=1, padding="VALID", name=namer("conv")
         )
         out = AdaptiveNorm(out, style)
         out = flow.nn.relu(out)
@@ -208,7 +230,8 @@ def Decoder(
         
         if shortcut.shape[1] != out.shape[1]:
             shortcut = utils.conv2d_layer(
-                shortcut, num_filters, 1, 1, "VALID", name=namer("conv")
+                shortcut, num_filters=num_filters, kernel_size=1, 
+                strides=1, padding="VALID", name=namer("conv")
             )
             shortcut = flow.nn.InstanceNorm2d(shortcut, affine=True)
 
@@ -219,92 +242,24 @@ def Decoder(
 
         out = flow.reflection_pad2d(out, padding=padding)
         out = utils.conv2d_layer(
-            out, num_filters, kernel_size, strides, 
-            "VALID", name=namer("conv")
+            out, num_filters=num_filters, kernel_size=kernel_size, 
+            strides=strides, padding="VALID", name=namer("conv")
         )
 
         return flow.math.tanh(out)
 
     out = input
     with flow.scope.namespace(name):
-        out = base_res_block(out, style, num_enc_output_channels)
-        out = base_res_block(out, style, num_enc_output_channels)
+        out = base_res_block(out, style, num_filters=num_enc_output_channels)
+        out = base_res_block(out, style, num_filters=num_enc_output_channels)
 
         for _ in range(num_upsamples):
             num_enc_output_channels //= 2
-            out = base_up_res_block(out, style, num_enc_output_channels)
+            out = base_up_res_block(out, style, num_filters=num_enc_output_channels)
 
-        out = Conv2dBlock(out, num_image_channels, 7, 1, 3)
+        out = Conv2dBlock(
+            out, num_filters=num_image_channels, 
+            kernel_size=7, strides=1, padding=3
+        )
 
     return out
-
-
-if __name__ == "__main__":
-    import oneflow.typing as tp
-
-    batch = 1
-    width = 256
-
-    def FUNITTranslator(
-        input, num_filters=64, num_filters_mlp=256, style_dims=64, num_res_blocks=2,
-        num_mlp_blocks=3, num_downsamples_style=4, num_downsamples_content=2,
-        num_image_channels=3, weight_norm_type="", name="FUNITTranslator"
-    ):
-
-        def encode(images):
-            # images: (N, 3, H, W)
-
-            # content: (N, 256, H // 16, W // 16)
-            content = ContentEncoder(
-                images, num_downsamples_content, num_res_blocks, num_image_channels,
-                num_filters, "reflect", "instance", weight_norm_type, "relu"
-            )
-
-            # style: (N, 64, 1, 1)
-            style = StyleEncoder(
-                images, num_downsamples_style, num_filters, style_dims, 
-                "reflect", "none", weight_norm_type, "relu"
-            )
-
-            return content, style
-
-        def decode(content, style):
-            # content: (N, 256, H // 16, W // 16)
-            # style: (N, 64, 1, 1)
-
-            # style: (N, 64)
-            # flow.reshape(style, [style.shape[0], -1])
-            style = flow.squeeze(style, axis=[2, 3])
-
-            # style: (N, 256)
-            style = MLP(
-                style, num_filters_mlp, num_filters_mlp, 
-                num_mlp_blocks, "none", "relu"
-            )
-
-            # images: (N, 3, 256, 256)
-            images = Decoder(
-                content, style, content.shape[1], num_image_channels,
-                num_downsamples_content, "reflect", weight_norm_type, "relu"
-            )
-
-            return images
-
-        with flow.scope.namespace(name):
-            content, style = encode(input)
-            images_recon = decode(content, style)
-
-        return images_recon
-
-    @flow.global_function(type="predict")
-    def test_job(
-        images: tp.Numpy.Placeholder((batch, 3, width, width), dtype=flow.float32),
-    ) -> tp.Numpy:
-
-        with flow.scope.placement("gpu", "0:0"):
-            return FUNITTranslator(images)
-
-    images = np.random.uniform(-10, 10, (batch, 3, width, width)).astype(np.float32)
-    out = test_job(images)
-
-    print(out.shape)
