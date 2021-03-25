@@ -9,7 +9,19 @@ This work is based on two repo: [pix2pixHD](https://github.com/NVIDIA/pix2pixHD)
 First train the global net for 78 epoches and then jointly train the local enhancer and global net for 194 epoches:
 
 <div align='center'>
-  <img src='results/cityscapes.png'>
+  <img src='results/cityscapes_1.png'>
+</div>
+
+<div align='center'>
+  <img src='results/cityscapes_2.png'>
+</div>
+
+<div align='center'>
+  <img src='results/cityscapes_3.png'>
+</div>
+
+<div align='center'>
+  <img src='results/cityscapes_4.png'>
 </div>
 
 
