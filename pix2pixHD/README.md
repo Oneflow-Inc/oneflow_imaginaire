@@ -6,7 +6,7 @@ This work is based on two repo: [pix2pixHD](https://github.com/NVIDIA/pix2pixHD)
 ## Results
 
 ### Cityscapes
-First train the global net for 78 epoches and then jointly train the local enhancer and global net for 56 epoches:
+First train the global net for 78 epoches and then jointly train the local enhancer and global net for 194 epoches:
 
 <div align='center'>
   <img src='results/cityscapes.png'>
@@ -47,8 +47,8 @@ Only train the global nets for 33 epoches:
 Download the `Cityscapes` and `CelebAMask-HQ` pretrain models:
 
 ```bash
-wget https://oneflow-public.oss-cn-beijing.aliyuncs.com/model_zoo/cv/gan/pix2pixHD_pertrain_model.tar.gz
-tar zxf pix2pixHD_pertrain_model.tar.gz
+wget https://oneflow-public.oss-cn-beijing.aliyuncs.com/model_zoo/cv/gan/pix2pixHD_pertrain_model_v2.tar.gz
+tar zxf pix2pixHD_pertrain_model_v2.tar.gz
 ls pix2pixHD_pertrain_model
 # CelebA_pretrain  Cityscapes_pretrain
 mv pix2pixHD_pertrain_model/CelebA_pretrain .
@@ -60,7 +60,7 @@ mv pix2pixHD_pertrain_model/Cityscapes_pretrain .
 Set the downloaded pretrain model path and run script `scripts/test_local_cityscapes.sh`:
 
 ```
-PRETRAIN_MODEL="./Cityscapes_pretrain/epoch_56_iter_1200_Gloss_5.284343_Dloss_0.841812"
+PRETRAIN_MODEL="./Cityscapes_pretrain/epoch_194_iter_600_Gloss_6.874650_Dloss_0.702645"
 ```
 
 ### Testing on CelebAMask-HQ
