@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 import oneflow as flow
@@ -7,9 +8,12 @@ import generator as G
 import discriminator as D
 import loss as L
 
+import dataset
 import options
 
 if __name__ == "__main__":
+    from functools import partial
+
     flow.env.init()
     func_config = flow.FunctionConfig()
     func_config.default_data_type(flow.float)
@@ -195,7 +199,8 @@ if __name__ == "__main__":
     def TrainDiscriminator(
         images_trans: tp.Numpy.Placeholder((N, C, H, W), dtype=flow.float32), 
         images_style: tp.Numpy.Placeholder((N, C, H, W), dtype=flow.float32), 
-        labels_style: tp.Numpy.Placeholder((N,), dtype=flow.int32)):
+        labels_style: tp.Numpy.Placeholder((N,), dtype=flow.int32)
+    ):
 
         with flow.scope.placement("gpu", f"0:{num_gpus-1}"):
             # discriminator
@@ -226,22 +231,54 @@ if __name__ == "__main__":
             flow.optimizer.Adam(scheduler, beta1=0.).minimize(loss)
 
             return loss
+    print("Job function configured")
 
-    images_content = np.random.uniform(-10, 10, (N, C, H, W)).astype(np.float32)
-    images_style = np.random.uniform(-10, 10, (N, C, H, W)).astype(np.float32)
-    labels_content = np.random.uniform(0, opt.label_nc, (N,)).astype(np.int32)
-    labels_style = np.random.uniform(0, opt.label_nc, (N,)).astype(np.int32)
+    augment = partial(
+        dataset.augment, 
+        random_scale_limit=opt.random_scale_limit, 
+        random_crop_h_w=opt.image_size
+    )
+    train_dataset = dataset.Dataset(os.path.join(opt.dataset_dir, "train"), augment=augment)
+    print("Dataset loaded")
 
     for epoch in range(opt.epoch):
-        images_trans, loss_G = TrainGenerator(
-            images_content, images_style, 
-            labels_content, labels_style
-        ).get()
-        
-        loss_D = TrainDiscriminator(
-            images_trans.numpy(), images_style, labels_style
-        ).get()
-        
-        print(
-            f"[Epoch {epoch:4}] loss_G: {loss_G.numpy()}, loss_D: {loss_D.numpy()}"
-        )
+        data_iter = train_dataset.data_iterator(N)
+        iteration = 0
+
+        while True:
+            try:
+                images_content, labels_content = next(data_iter)
+                images_style, labels_style = next(data_iter)
+            except StopIteration:
+                break
+
+            images_trans, loss_G = TrainGenerator(
+                images_content, images_style, 
+                labels_content, labels_style
+            ).get()
+            
+            loss_D = TrainDiscriminator(
+                images_trans.numpy(), images_style, labels_style
+            ).get()
+
+            if iteration % 5 == 0:
+                loss_G_data = loss_G.numpy()[0]
+                loss_D_data = loss_D.numpy()[0]
+
+                print(
+                    f"[Epoch {epoch:4}] loss_G: {loss_G_data}, loss_D: {loss_D_data}"
+                )
+
+                if iteration % 300 == 0:
+                    filename = (
+                        f"{opt.checkpoints_dir}/"
+                        f"epoch_{epoch}_iter_{iteration}_"
+                        f"Gloss_{loss_G_data}_Dloss_{loss_D_data}"
+                    )
+
+                    flow.checkpoint.save(filename)
+                    print(f"checkpoint saved to {filename}")
+
+            iteration += 1
+
+        train_dataset.shuffle()
