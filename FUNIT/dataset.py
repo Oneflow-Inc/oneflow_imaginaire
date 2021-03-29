@@ -5,7 +5,9 @@ import numpy as np
 import cv2
 
 
-def augment(img, random_scale_limit=0.1, random_crop_h_w=256, rng=None):
+def augment(img, random_scale_limit=0.1, resize_smallest_side=270, random_crop_h_w=256, rng=None):
+    assert resize_smallest_side > random_crop_h_w
+
     # img: float32 HxWxC
     assert img.shape[2] == 3
 
@@ -16,7 +18,9 @@ def augment(img, random_scale_limit=0.1, random_crop_h_w=256, rng=None):
     img = (img - np.float32(0.5)) * np.float32(2)
 
     # resize_smallest_side
-    img = cv2.resize(img, (270, 270), cv2.INTER_CUBIC)
+    h, w, _ = img.shape
+    scale = max(resize_smallest_side / h, resize_smallest_side / w)
+    img = cv2.resize(img, (int(w * scale), int(h * scale)), cv2.INTER_CUBIC)
 
     # random_scale_limit
     img *= np.float32(rng.uniform(1, 1+random_scale_limit))

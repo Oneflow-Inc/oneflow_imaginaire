@@ -1,3 +1,4 @@
+from functools import partial
 import os
 import numpy as np
 
@@ -12,8 +13,6 @@ import dataset
 import options
 
 if __name__ == "__main__":
-    from functools import partial
-
     flow.env.init()
     func_config = flow.FunctionConfig()
     func_config.default_data_type(flow.float)
@@ -236,6 +235,7 @@ if __name__ == "__main__":
     augment = partial(
         dataset.augment, 
         random_scale_limit=opt.random_scale_limit, 
+        resize_smallest_side=opt.resize_smallest_side, 
         random_crop_h_w=opt.image_size
     )
     train_dataset = dataset.Dataset(os.path.join(opt.dataset_dir, "train"), augment=augment)
