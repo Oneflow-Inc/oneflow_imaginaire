@@ -1,3 +1,5 @@
+from functools import partial
+import os
 import numpy as np
 
 import oneflow as flow
@@ -7,18 +9,22 @@ import generator as G
 import discriminator as D
 import loss as L
 
+import dataset
 import options
 
 if __name__ == "__main__":
+    flow.config.enable_legacy_model_io(False)
+
     flow.env.init()
     func_config = flow.FunctionConfig()
     func_config.default_data_type(flow.float)
-    func_config.default_placement_scope(flow.scope.placement("gpu", "0:0"))
+    func_config.default_logical_view(flow.scope.consistent_view())
+    # func_config.default_placement_scope(flow.scope.placement("gpu", "0:0-1"))
 
     opt = options.BaseOptions().parse()
 
     num_gpus = opt.num_gpus
-    assert num_gpus in [1, 2]
+    # assert num_gpus in [1, 2]
     flow.config.gpu_device_num(num_gpus)
 
     N = opt.batch_size
@@ -61,7 +67,8 @@ if __name__ == "__main__":
         labels_style: tp.Numpy.Placeholder((N,), dtype=flow.int32)
     ):
 
-        with flow.scope.placement("gpu", "0:0"):
+        # with flow.scope.placement("gpu", "0:0"):
+        with flow.scope.consistent_view():
             # generator
             content_a = G.ContentEncoder(
                 images_content, 
@@ -137,7 +144,8 @@ if __name__ == "__main__":
                 nonlinearity="relu"
             )
 
-        with flow.scope.placement("gpu", f"0:{num_gpus-1}"):
+        # with flow.scope.placement("gpu", f"0:{num_gpus-1}"):
+        with flow.scope.consistent_view():
             # discriminator
             fake_out_trans, fake_features_trans = D.ResDiscriminator(
                 images_trans, labels_style, 
@@ -195,9 +203,11 @@ if __name__ == "__main__":
     def TrainDiscriminator(
         images_trans: tp.Numpy.Placeholder((N, C, H, W), dtype=flow.float32), 
         images_style: tp.Numpy.Placeholder((N, C, H, W), dtype=flow.float32), 
-        labels_style: tp.Numpy.Placeholder((N,), dtype=flow.int32)):
+        labels_style: tp.Numpy.Placeholder((N,), dtype=flow.int32)
+    ):
 
-        with flow.scope.placement("gpu", f"0:{num_gpus-1}"):
+        # with flow.scope.placement("gpu", f"0:{num_gpus-1}"):
+        with flow.scope.consistent_view():
             # discriminator
             fake_out_trans, _ = D.ResDiscriminator(
                 images_trans, labels_style, 
@@ -227,21 +237,55 @@ if __name__ == "__main__":
 
             return loss
 
-    images_content = np.random.uniform(-10, 10, (N, C, H, W)).astype(np.float32)
-    images_style = np.random.uniform(-10, 10, (N, C, H, W)).astype(np.float32)
-    labels_content = np.random.uniform(0, opt.label_nc, (N,)).astype(np.int32)
-    labels_style = np.random.uniform(0, opt.label_nc, (N,)).astype(np.int32)
+    print("Job function configured")
+
+    augment = partial(
+        dataset.augment, 
+        random_scale_limit=opt.random_scale_limit, 
+        resize_smallest_side=opt.resize_smallest_side, 
+        random_crop_h_w=opt.image_size
+    )
+    train_dataset = dataset.Dataset(os.path.join(opt.dataset_dir, "train"), augment=augment)
+    print("Dataset loaded")
 
     for epoch in range(opt.epoch):
-        images_trans, loss_G = TrainGenerator(
-            images_content, images_style, 
-            labels_content, labels_style
-        ).get()
-        
-        loss_D = TrainDiscriminator(
-            images_trans.numpy(), images_style, labels_style
-        ).get()
-        
-        print(
-            f"[Epoch {epoch:4}] loss_G: {loss_G.numpy()}, loss_D: {loss_D.numpy()}"
-        )
+        data_iter = train_dataset.data_iterator(N)
+        iteration = 0
+
+        while True:
+            try:
+                images_content, labels_content = next(data_iter)
+                images_style, labels_style = next(data_iter)
+            except StopIteration:
+                break
+
+            images_trans, loss_G = TrainGenerator(
+                images_content, images_style, 
+                labels_content, labels_style
+            ).get()
+
+            loss_D = TrainDiscriminator(
+                images_trans.numpy(), images_style, labels_style
+            ).get()
+
+            if iteration % 5 == 0:
+                loss_G_data = f"{loss_G.numpy()[0]}"
+                loss_D_data = f"{loss_D.numpy()[0]}"
+
+                print(
+                    f"[Epoch {epoch:4}] loss_G: {loss_G_data}, loss_D: {loss_D_data}"
+                )
+
+                if iteration % 300 == 0:
+                    filename = (
+                        f"{opt.checkpoints_dir}/"
+                        f"epoch_{epoch}_iter_{iteration}_"
+                        f"Gloss_{loss_G_data}_Dloss_{loss_D_data}"
+                    )
+
+                    flow.checkpoint.save(filename)
+                    print(f"checkpoint saved to {filename}")
+
+            iteration += 1
+
+        train_dataset.shuffle()
