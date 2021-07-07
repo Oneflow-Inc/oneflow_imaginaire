@@ -5,13 +5,18 @@ class BaseOptions():
         self.parser = argparse.ArgumentParser()
         self.initialized = False
 
-    def initialize(self):    
+    def initialize(self):
+        self.parser.add_argument('--dataset_dir', type=str, help='')
+        self.parser.add_argument('--checkpoints_dir', type=str, help='')
         self.parser.add_argument('--num_gpus', type=int, default=1, help='')
+        self.parser.add_argument('--seed', type=int, default=1, help='')
 
         self.parser.add_argument('--batch_size', type=int, default=1, help='input batch size')
         self.parser.add_argument('--num_image_channels', type=int, default=3, help='# of image channels')
+        self.parser.add_argument('--resize_smallest_side', type=int, default=270, help='')
         self.parser.add_argument('--image_size', type=int, default=256, help='input image size')
         self.parser.add_argument('--label_nc', type=int, default=119, help='# of label channels')
+        self.parser.add_argument('--random_scale_limit', type=float, default=0.1, help='')
 
         # for generator
         self.parser.add_argument('--gen_num_filters', type=int, default=64, help='')
