@@ -4,6 +4,7 @@ from data.base_method.image_option import loaded_label2ndarray, loaded_image2nda
 from data.base_method.image_folder import make_dataset
 from PIL import Image
 import numpy as np
+import random
 
 class Dataset_Help(object):
     def __init__(self, opt):
@@ -26,6 +27,8 @@ class Dataset_Help(object):
         if not opt.no_instance:
             self.instant_paths = os.path.join(opt.dataroot, opt.phase+'_inst')
             self.instant_paths = sorted(make_dataset(self.instant_paths))
+        self.shuffle2()
+
 
     def __getitem__(self, item):
         # label
@@ -60,3 +63,15 @@ class Dataset_Help(object):
 
     def lenOfIter_perBatch(self):
         return len(self.dir_real_image) // self.opt.batch_size
+
+    def shuffle2(self):
+        # use same random seed to shuffle list
+
+        # every time use random seed in case same shuffle in different epoch
+        ra = random.random()
+        random.seed(ra)
+        random.shuffle(self.dir_label)
+        random.seed(ra)
+        random.shuffle(self.dir_real_image)
+        random.seed(ra)
+        random.shuffle(self.instant_paths)
