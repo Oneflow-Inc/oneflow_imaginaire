@@ -130,6 +130,9 @@ def out_scale_semantic(input_semantics):
     # cv2.waitKey()
     return is_32, is_16, is_8, is_4, is_2, is_1
 
+if not opt.no_vgg_loss:
+    flow.load_variables(flow.checkpoint.get(opt.pre_vgg))
+
 
 for epoch in range(opt.epochs):
     for i in range(len(dataset)):

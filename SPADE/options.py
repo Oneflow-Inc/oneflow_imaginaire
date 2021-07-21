@@ -13,6 +13,8 @@ class BaseOptions():
         self.parser.add_argument('--gpu_nums', type=int, default=1, help='')
         self.parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints')
         self.parser.add_argument('--phase', type=str, default='train', help='train, val, test')
+        self.parser.add_argument('--pre_vgg', type=str, default='', help='used for perceptual loss')
+
 
         # input/output size
         self.parser.add_argument('--batch_size', type=int, default=1, help='input batch size')
