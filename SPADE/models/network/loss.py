@@ -1,6 +1,6 @@
 import oneflow as flow
 import numpy as np
-
+from models.vgg16 import vgg16bn_style_layer
 
 class GAN_loss():
     def __init__(self, gan_mode, target_real_label=1.0, target_fake_label=0, opt=None):
@@ -117,7 +117,7 @@ def gan_loss(dis_output, t_real, gan_mode="hinge", dis_update=True):
 class VGG_loss():
     def __init__(self):
         super(VGG_loss, self).__init__()
-        self.vgg = None
+        self.vgg = vgg16bn_style_layer
         self.criterion = flow.nn.L1Loss
         self.weights = [1.0/32, 1.0/16, 1.0/8, 1.0/4, 1.0]
 
