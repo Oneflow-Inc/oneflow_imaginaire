@@ -10,6 +10,7 @@ from util.spectral_norm import spectral_norm, sn
 from util.save import saveStr_as_txt
 import time
 import os
+import shutil
 
 opt = BaseOptions().parse()
 
@@ -134,7 +135,7 @@ if not os.path.exists('./my_log'):
     os.mkdir('./my_log')
 
 path_loss = 'loss->'+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
-
+checkpoint_name_former = None
 for epoch in range(opt.epochs):
     saveStr_as_txt(path_loss, time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())+'|'+'epoch:'+str(epoch))
     for i in range(len(dataset)):
@@ -185,5 +186,11 @@ for epoch in range(opt.epochs):
             out = np.concatenate((fake, real), axis=0)
             cv2.imwrite('haha.jpg', out)
 
-        # if i % 300 ==0:
-        #     flow.checkpoint.save('./checkpoints/haha')
+        if checkpoint_name_former != None:
+            # delete former checkpoint to save disk room
+            shutil.rmtree(checkpoint_name_former)
+            checkpoint_name_former = None
+        if i % 300 ==0:
+            # must be saved to an unexisted file or a empty file
+            checkpoint_name_former = './checkpoints/epoch_'+str(epoch)+'iter_'+str(i)
+            flow.checkpoint.save(checkpoint_name_former)
