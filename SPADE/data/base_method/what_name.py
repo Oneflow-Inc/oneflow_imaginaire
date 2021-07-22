@@ -62,7 +62,7 @@ class Dataset_Help(object):
         return len(self.dir_real_image)
 
     def lenOfIter_perBatch(self):
-        return len(self.dir_real_image) // self.opt.batch_size
+        return int(len(self.dir_real_image)) // int(self.opt.batch_size)
 
     def shuffle2(self):
         # use same random seed to shuffle list

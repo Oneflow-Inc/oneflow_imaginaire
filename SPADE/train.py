@@ -71,7 +71,6 @@ def TrainG(
     flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beat1).minimize(loss)
     return g_losses, fake_image
 
-
 # 在SAPDE官方代码里面调试
 # label.shape = [1, 1, 256, 256]
 # instance.shape = [1, 1, 256, 256]
@@ -138,7 +137,7 @@ path_loss = 'loss->'+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
 checkpoint_name_former = None
 for epoch in range(opt.epochs):
     saveStr_as_txt(path_loss, time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())+'|'+'epoch:'+str(epoch))
-    for i in range(len(dataset)):
+    for i in range(dataset.lenOfIter_perBatch()):
         data_dict = dataset[i]
         image = data_dict['real_image']
         label = data_dict['label']
@@ -192,5 +191,5 @@ for epoch in range(opt.epochs):
             checkpoint_name_former = None
         if i % 300 ==0:
             # must be saved to an unexisted file or a empty file
-            checkpoint_name_former = './checkpoints/epoch_'+str(epoch)+'iter_'+str(i)
+            checkpoint_name_former = './checkpoints/epoch_'+str(epoch)+'iter_'+'|'+str(i)+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
             flow.checkpoint.save(checkpoint_name_former)

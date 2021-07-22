@@ -31,7 +31,7 @@ class BaseOptions():
         self.parser.add_argument('--output_nc', type=int, default=3, help='# of output image channels')
 
         # input setting
-        self.parser.add_argument('--dataroot', type=str, default='/home/matrix/Documents/code/gan/of/cityscapes_pix2pixHD', help='')
+        self.parser.add_argument('--dataroot', type=str, default='/home/shikaijie/dataset/cityscape/cityscapes_pix2pixHD', help='')
         self.parser.add_argument('--dataset_mode', type=str, default='coco', help='')
         self.parser.add_argument('--flip', action='store_true', help='')
         self.parser.add_argument('--resize_or_crop', type=str, default='resize')
