@@ -22,3 +22,23 @@ def spectral_norm(w, iteration=1):
     w_norm = w/sigma
     w_norm = np.reshape(w_norm, w_shape)
     return w_norm
+
+def sn():
+    weight_dict = flow.get_all_variables()
+    weight_copy = {}
+    for k in weight_dict.keys():
+        weight_copy[k] = np.zeros(weight_dict[k].numpy().shape)
+
+    for k in weight_dict.keys():
+        weight_temp = weight_dict[k].numpy()
+        if len(weight_temp.shape) == 4:  # convolution kernel
+            weight_copy[k] = spectral_norm(weight_temp).astype(np.float32)
+        else:
+            weight_copy[k] = weight_temp
+        # print(weight_temp.shape)
+        # print(len(weight_temp.shape))
+        # weight_copy[k] = spectral_norm(weight_temp).astype(np.float32)
+        # print(weight_dict[k].dtype)
+        # print(weight_copy[k].dtype)
+
+    flow.load_variables(weight_copy)

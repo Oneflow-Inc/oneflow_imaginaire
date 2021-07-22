@@ -6,7 +6,10 @@ from options import BaseOptions
 from pre_process import preprocess_input
 import cv2
 from data.base_method.what_name import Dataset_Help
-from util.spectral_norm import spectral_norm
+from util.spectral_norm import spectral_norm, sn
+from util.save import saveStr_as_txt
+import time
+import os
 
 opt = BaseOptions().parse()
 
@@ -19,12 +22,6 @@ func_config = flow.FunctionConfig()
 func_config.default_data_type(flow.float)
 # func_config.default_logical_view(flow.scope.consistent_view)
 func_config.default_placement_scope(flow.scope.placement('gpu', '0:0'))
-
-fake_dataset = True
-if fake_dataset:
-    print('Use fake dataset')
-else:
-    raise ('Have not load dataset')
 
 batch = opt.batch_size
 label_class_num = opt.label_nc
@@ -133,8 +130,13 @@ def out_scale_semantic(input_semantics):
 if not opt.no_vgg_loss:
     flow.load_variables(flow.checkpoint.get(opt.pre_vgg))
 
+if not os.path.exists('./my_log'):
+    os.mkdir('./my_log')
+
+path_loss = 'loss->'+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
 
 for epoch in range(opt.epochs):
+    saveStr_as_txt(path_loss, time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())+'|'+'epoch:'+str(epoch))
     for i in range(len(dataset)):
         data_dict = dataset[i]
         image = data_dict['real_image']
@@ -163,26 +165,19 @@ for epoch in range(opt.epochs):
 
         g_loss, fake_image = TrainG(is_32, is_16, is_8, is_4, is_2, is_1, real_image).get()
         b = TrainD(is_32, is_16, is_8, is_4, is_2, is_1, real_image).get()
+        record_str = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())+'|'
         print('G:', end='')
         for k in g_loss.keys():
             print(k, g_loss[k].numpy(), end='')
+            record_str += str(k) + ': ' + str(g_loss[k].numpy()) + ', '
         print('B:', end='')
         for k in b.keys():
             print(k, b[k].numpy(), end='')
+            record_str += str(k) + ': ' + str(b[k].numpy()) + ', '
         print(' ')
-        weight_dict = flow.get_all_variables()
-        weight_copy = {}
-        for k in weight_dict.keys():
-            weight_copy[k] = np.zeros(weight_dict[k].numpy().shape)
-
-        for k in weight_dict.keys():
-            weight_temp = weight_dict[k].numpy()
-            weight_copy[k] = spectral_norm(weight_temp)
-            # print(type(weight_dict[k]))
-            # print(type(weight_copy[k]))
-
-        flow.load_variables(weight_copy)
-
+        saveStr_as_txt(path_loss, record_str)
+        if opt.sn:
+            sn()
 
         if i % 10 ==0:
             real = tensor2im(data_dict['real_image'][0])
@@ -190,5 +185,5 @@ for epoch in range(opt.epochs):
             out = np.concatenate((fake, real), axis=0)
             cv2.imwrite('haha.jpg', out)
 
-        if i % 300 ==0:
-            flow.checkpoint.save('./checkpoints/haha')
+        # if i % 300 ==0:
+        #     flow.checkpoint.save('./checkpoints/haha')

@@ -1,4 +1,6 @@
 import argparse
+from util.save import saveDict_as_txt
+import time
 
 class BaseOptions():
     def __init__(self):
@@ -14,6 +16,8 @@ class BaseOptions():
         self.parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints')
         self.parser.add_argument('--phase', type=str, default='train', help='train, val, test')
         self.parser.add_argument('--pre_vgg', type=str, default='', help='used for perceptual loss')
+        self.parser.add_argument('--sn', action='store_true', help='spade_norm')
+
 
 
         # input/output size
@@ -77,5 +81,8 @@ class BaseOptions():
         for k, v in sorted(args.items()):
             print(str(k)+':'+str(v))
         print('------------------END------------------')
-        print('Have not save options to txt file!')
+
+        path = 'options->' + time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
+        saveDict_as_txt(path, args)
+
         return self.opt
