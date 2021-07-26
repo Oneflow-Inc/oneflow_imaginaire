@@ -15,7 +15,7 @@ class BaseOptions():
         self.parser.add_argument('--gpu_nums', type=int, default=1, help='')
         self.parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints')
         self.parser.add_argument('--phase', type=str, default='train', help='train, val, test')
-        self.parser.add_argument('--pre_vgg', type=str, default='', help='used for perceptual loss')
+        self.parser.add_argument('--pre_vgg', type=str, default='./', help='used for perceptual loss')
         self.parser.add_argument('--sn', action='store_true', help='spade_norm')
 
 
@@ -57,7 +57,7 @@ class BaseOptions():
         self.parser.add_argument('--num_image_channels', type=int, default=3, help='# of image channels')
         self.parser.add_argument('--image_size', type=int, default=256, help='input image size')
         self.parser.add_argument('--no_ganFeat_loss', action='store_true', help='if specified, do *not* add instance map as input')
-        self.parser.add_argument('--no_vgg_loss', action='store_true', default=True, help='if specified, do *not* add instance map as input')
+        self.parser.add_argument('--no_vgg_loss', action='store_true', help='if specified, do *not* add instance map as input')
         self.parser.add_argument('--isTrain', action='store_true', default=True, help='if specified, do *not* add instance map as input')
         # self.parser.add_argument('--semantic_nc', type=int, default=184, help='# of output image channels')
 
