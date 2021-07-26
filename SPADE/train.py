@@ -105,12 +105,12 @@ def out_scale_semantic(input_semantics):
     is_1 = np.zeros((bs, c, h // 1, w // 1))
     for b in range(bs):  # 遍历 batchsize
         for c_ in range(c):  # 遍历 通道
-            is_32[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (h // 32, w // 32))
-            is_16[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (h // 16, w // 16))
-            is_8[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (h // 8, w // 8))
-            is_4[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (h // 4, w // 4))
-            is_2[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (h // 2, w // 2))
-            is_1[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (h // 1, w // 1))
+            is_32[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 32, h // 32))
+            is_16[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 16, h // 16))
+            is_8[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 8, h // 8))
+            is_4[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 4, h // 4))
+            is_2[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 2, h // 2))
+            is_1[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 1, h // 1))
     # cv2.imshow('0', input_semantics[0][22].astype(np.float32))
     # cv2.waitKey()
     # cv2.imshow('1', is_32[0][22].astype(np.float32))
@@ -166,6 +166,7 @@ for epoch in range(opt.epochs):
         g_loss, fake_image = TrainG(is_32, is_16, is_8, is_4, is_2, is_1, real_image).get()
         b = TrainD(is_32, is_16, is_8, is_4, is_2, is_1, real_image).get()
         record_str = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())+'|'
+        print('Epoch:'+str(epoch), end='. ')
         print('G:', end='')
         for k in g_loss.keys():
             print(k, g_loss[k].numpy(), end='')
@@ -185,11 +186,11 @@ for epoch in range(opt.epochs):
             out = np.concatenate((fake, real), axis=0)
             cv2.imwrite('haha.jpg', out)
 
-        if checkpoint_name_former != None:
-            # delete former checkpoint to save disk room
-            shutil.rmtree(checkpoint_name_former)
-            checkpoint_name_former = None
         if i % 300 ==0:
             # must be saved to an unexisted file or a empty file
+            if checkpoint_name_former != None:
+                # delete former checkpoint to save disk room
+                shutil.rmtree(checkpoint_name_former)
+                checkpoint_name_former = None
             checkpoint_name_former = './checkpoints/epoch_'+str(epoch)+'iter_'+'|'+str(i)+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
             flow.checkpoint.save(checkpoint_name_former)
