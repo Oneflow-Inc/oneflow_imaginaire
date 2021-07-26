@@ -180,9 +180,9 @@ for epoch in range(opt.epochs):
         if opt.sn:
             sn()
 
-        if i % 10 ==0:
+        if i % 1 ==0:
             real = tensor2im(data_dict['real_image'][0])
-            fake = tensor2im(fake_image.numpy()[0])
+            fake = tensor2im(fake_image.numpy()[-1])
             out = np.concatenate((fake, real), axis=0)
             cv2.imwrite('haha.jpg', out)
 
