@@ -21,8 +21,9 @@ if device_type == 'gpu':
 flow.env.init()
 func_config = flow.FunctionConfig()
 func_config.default_data_type(flow.float)
-# func_config.default_logical_view(flow.scope.consistent_view)
-func_config.default_placement_scope(flow.scope.placement('gpu', '0:0'))
+func_config.default_logical_view(flow.scope.consistent_view())
+# func_config.default_logical_view(flow.scope.mirrored_view())
+# func_config.default_placement_scope(flow.scope.placement('gpu', '0:0-7'))
 
 batch = opt.batch_size
 label_class_num = opt.label_nc
