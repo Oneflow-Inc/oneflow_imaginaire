@@ -104,6 +104,7 @@ class Pix2PixModel():
         if not self.opt.no_vgg_loss:
             G_losses['VGG'] = self.criterionVggLoss(fake_image, real_image) * self.opt.lambda_vgg
 
+
         return G_losses, fake_image
 
     def compute_D_loss(self, is_32, is_16, is_8, is_4, is_2, is_1, real_image):
