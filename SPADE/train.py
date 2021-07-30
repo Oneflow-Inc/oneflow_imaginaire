@@ -68,6 +68,7 @@ def TrainG(
     g_losses, fake_image = pix2pix.compute_G_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image, opt, trainable=True)
     loss = sum(g_losses.values())
+    # lr_scheduler = flow.optimizer.CosineScheduler()
     flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_G]), beta1=opt.beat1).minimize(loss)
     return g_losses, fake_image
 
