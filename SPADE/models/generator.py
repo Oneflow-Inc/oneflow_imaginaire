@@ -4,8 +4,10 @@ from .network.normalization import spadeRes, conv2d_layer
 
 def generator(is_32, is_16, is_8, is_4, is_2, is_1, opt, z=None, trainable=True):
     spectral = False
+
     def up(d, name=''):
         return flow.layers.upsample_2d(d, name=name)
+
 
     if opt.use_vae:
         init_z_method = flow.random_normal_initializer()
@@ -45,7 +47,6 @@ def generator(is_32, is_16, is_8, is_4, is_2, is_1, opt, z=None, trainable=True)
     # head_6
     d = spadeRes(d, is_1, 64, spectral=spectral, trainable=trainable, name_prefix='g_spadeRes_7')
     # d = up(d)
-
     d = flow.nn.leaky_relu(d)
     d = conv2d_layer(d, 3, kernel_size=3, trainable=trainable, name='g_conv2d_3', padding='SAME')
     # d = flow.experimental.tanh(d)

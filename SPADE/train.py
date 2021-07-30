@@ -23,7 +23,7 @@ func_config = flow.FunctionConfig()
 func_config.default_data_type(flow.float)
 func_config.default_logical_view(flow.scope.consistent_view())
 # func_config.default_logical_view(flow.scope.mirrored_view())
-# func_config.default_placement_scope(flow.scope.placement('gpu', '0:0-7'))
+# func_config.default_placement_scope(flow.scope.placement('gpu', '0:7'))
 
 batch = opt.batch_size
 label_class_num = opt.label_nc
@@ -46,11 +46,9 @@ def TrainD(
                                          dtype=flow.float32),
 
 ):
+
     d_losses = pix2pix.compute_D_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image)
-    # loss = 0
-    # for k in d_losses.keys():
-    #     loss += d_losses[k]
     loss = sum(d_losses.values())
     flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beat1).minimize(loss)
     return d_losses
@@ -66,17 +64,13 @@ def TrainG(
     input_semantics_1: tp.Numpy.Placeholder((opt.batch_size, 37, height, width), dtype=flow.float),
     real_image: tp.Numpy.Placeholder((opt.batch_size, image_channel, height, width), dtype=flow.float32)
 ):
+
     g_losses, fake_image = pix2pix.compute_G_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image, opt, trainable=True)
     loss = sum(g_losses.values())
     flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beat1).minimize(loss)
     return g_losses, fake_image
 
-# 在SAPDE官方代码里面调试
-# label.shape = [1, 1, 256, 256]
-# instance.shape = [1, 1, 256, 256]
-# image.shape = [1, 3, 256, 256]
-# input_semantics.shape = [1, 183, 256, 256]
 
 def tensor2im(image_tensor, imtype=np.uint8, normalize=True):
     if isinstance(image_tensor, list):
@@ -112,20 +106,6 @@ def out_scale_semantic(input_semantics):
             is_4[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 4, h // 4))
             is_2[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 2, h // 2))
             is_1[b][c_] = cv2.resize(input_semantics[b, c_, :, :].reshape((h, w, 1)), (w // 1, h // 1))
-    # cv2.imshow('0', input_semantics[0][22].astype(np.float32))
-    # cv2.waitKey()
-    # cv2.imshow('1', is_32[0][22].astype(np.float32))
-    # cv2.waitKey()
-    # cv2.imshow('2', is_16[0][22].astype(np.float32))
-    # cv2.waitKey()
-    # cv2.imshow('3', is_8[0][22].astype(np.float32))
-    # cv2.waitKey()
-    # cv2.imshow('4', is_4[0][22].astype(np.float32))
-    # cv2.waitKey()
-    # cv2.imshow('5', is_2[0][22].astype(np.float32))
-    # cv2.waitKey()
-    # cv2.imshow('6', is_1[0][22].astype(np.float32))
-    # cv2.waitKey()
     return is_32, is_16, is_8, is_4, is_2, is_1
 
 if not opt.no_vgg_loss:
@@ -138,6 +118,7 @@ path_loss = 'loss->'+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
 checkpoint_name_former = None
 for epoch in range(opt.epochs):
     saveStr_as_txt(path_loss, time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())+'|'+'epoch:'+str(epoch))
+    save_jpg_tag = True
     for i in range(dataset.lenOfIter_perBatch()):
         data_dict = dataset[i]
         image = data_dict['real_image']
@@ -154,12 +135,6 @@ for epoch in range(opt.epochs):
                 instance = np.concatenate((instance, instance_), axis=0)
             i = i+b
         data = {'label': label, 'image': image, 'instance': instance}
-        # cv2.imshow('1', data['label'][0].reshape(256, 256, 1).astype(np.int8))
-        # cv2.waitKey()
-        # cv2.imshow('2', data['image'][0].reshape(256, 256, 3).astype(np.float))
-        # cv2.waitKey()
-        # cv2.imshow('3', data['instance'][0].reshape(256, 256, 1).astype(np.int8))
-        # cv2.waitKey()
         input_semantics, real_image = preprocess_input(data, opt)
 
         is_32, is_16, is_8, is_4, is_2, is_1 = out_scale_semantic(input_semantics)
@@ -181,11 +156,15 @@ for epoch in range(opt.epochs):
         if opt.sn:
             sn()
 
-        if i % 1 ==0:
-            real = tensor2im(data_dict['real_image'][0])
-            fake = tensor2im(fake_image.numpy()[-1])
-            out = np.concatenate((fake, real), axis=0)
-            cv2.imwrite('haha.jpg', out)
+        if i % 100 ==0:
+            if save_jpg_tag:
+                real = tensor2im(data_dict['real_image'][0])
+                fake = tensor2im(fake_image.numpy()[-1])
+                out = np.concatenate((fake, real), axis=0)
+                cv2.imwrite('Epoch:'+str(epoch+1)+'haha.jpg', out)
+                save_jpg_tag = False
+            else:
+                pass
 
         if i % 300 ==0:
             # must be saved to an unexisted file or a empty file

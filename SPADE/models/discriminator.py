@@ -18,6 +18,7 @@ def multi_scale_discriminator(input, trainable=True):
 
 
 def n_layer_discriminator(input, trainable=True):
+
     nf = 64
     n_layer_d = 4
     get_intermediate_featuers = True
