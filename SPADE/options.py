@@ -50,7 +50,8 @@ class BaseOptions():
         self.parser.add_argument('--height', type=int, default=256, help='')
         self.parser.add_argument('--width', type=int, default=512, help='')
         self.parser.add_argument('--lr', type=float, default=0.0002, help='')
-        self.parser.add_argument('--beat1', type=float, default=0.9, help='')
+        self.parser.add_argument('--beat1', type=float, default=0, help='')
+        self.parser.add_argument('--beat1', type=float, default=0.999, help='')
         self.parser.add_argument('--lambda_feta', type=float, default=10.0, help='')
         self.parser.add_argument('--lambda_vgg', type=float, default=10.0, help='')
 
