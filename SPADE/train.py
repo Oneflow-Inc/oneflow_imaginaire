@@ -50,7 +50,7 @@ def TrainD(
     d_losses = pix2pix.compute_D_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image)
     loss = sum(d_losses.values())
-    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beat1).minimize(loss)
+    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_D]), beta1=opt.beat1).minimize(loss)
     return d_losses
 
 
@@ -68,7 +68,7 @@ def TrainG(
     g_losses, fake_image = pix2pix.compute_G_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image, opt, trainable=True)
     loss = sum(g_losses.values())
-    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr]), beta1=opt.beat1).minimize(loss)
+    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_G]), beta1=opt.beat1).minimize(loss)
     return g_losses, fake_image
 
 
