@@ -175,3 +175,4 @@ for epoch in range(opt.epochs):
                 checkpoint_name_former = None
             checkpoint_name_former = './checkpoints/epoch_'+str(epoch)+'iter_'+'|'+str(i)+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())
             flow.checkpoint.save(checkpoint_name_former)
+    dataset.shuffle2()
