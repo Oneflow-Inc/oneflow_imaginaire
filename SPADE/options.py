@@ -52,7 +52,7 @@ class BaseOptions():
         self.parser.add_argument('--lr_G', type=float, default=0.0001, help='')
         self.parser.add_argument('--lr_D', type=float, default=0.0004, help='')
         self.parser.add_argument('--beat1', type=float, default=0, help='')
-        self.parser.add_argument('--beat2', type=float, default=0.999, help='')
+        self.parser.add_argument('--beat2', type=float, default=0.999, help='')#issue 50
         self.parser.add_argument('--lambda_feta', type=float, default=10.0, help='')
         self.parser.add_argument('--lambda_vgg', type=float, default=10.0, help='')
 
