@@ -53,13 +53,13 @@ def spade(input, segmap, ks=3, pf_norm='batch', trainable=True, name_prefix='spa
 
     norm_nc = input.shape[1]
     with flow.scope.namespace(name_prefix):
-        def mlp_shared(segmap_interpolate, nhidden, ks, trainable=True):
+        def mlp_shared(segmap_interpolate, nhidden, ks, trainable=trainable):
             out = conv2d_layer(segmap_interpolate, nhidden, kernel_size=ks, trainable=trainable, padding='SAME', name=name_prefix+'mlp_shared')
             out = flow.nn.relu(out)
             return out
 
         if pf_norm == 'batch':
-            param_free_norm = flow.layers.batch_normalization(input, trainable=trainable, name='pf_norm', center=False, scale=False)
+            param_free_norm = flow.layers.batch_normalization(input, axis=1, trainable=trainable, name='pf_norm', center=False, scale=False)
         else:
             raise ('Other batch methods No implement!')
 
@@ -71,7 +71,7 @@ def spade(input, segmap, ks=3, pf_norm='batch', trainable=True, name_prefix='spa
     return out
 
 def spadeRes(input, segmap, out_c, spectral=True, trainable=True, name_prefix='spadeRes'):
-    learned_shortcut = (input.shape[1] == out_c)
+    learned_shortcut = (input.shape[1] != out_c) # bug
     middle_c = min(input.shape[1], out_c)
 
     if spectral==True:
@@ -83,7 +83,7 @@ def spadeRes(input, segmap, out_c, spectral=True, trainable=True, name_prefix='s
                 raise ('Have not implement spectral norm')
             else:
                 with flow.scope.namespace(name_prefix):
-                    x_s = conv2d_layer(spade(x, seg), out_c, kernel_size=1, trainable=trainable, name='shortcut')
+                    x_s = conv2d_layer(spade(x, seg), out_c, kernel_size=1, trainable=trainable, use_bias=False,name='shortcut')
                 # there is a relu between conv2d and spade in paper, but disappear in NVlas.
         else:
             x_s = x

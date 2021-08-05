@@ -5,9 +5,9 @@ from .network.normalization import spadeRes, conv2d_layer
 def generator(is_32, is_16, is_8, is_4, is_2, is_1, opt, z=None, trainable=True):
     spectral = False
 
-    def up(d, name=''):
-        # return flow.layers.upsample_2d(d, name=name)
-        return flow.layers.upsample_2d(d, name=name, interpolation='bilinear')
+    def up(d, name):
+        return flow.layers.upsample_2d(d, name=name)
+        # return flow.layers.upsample_2d(d, name=name, interpolation='bilinear')
 
 
     if opt.use_vae:

@@ -50,7 +50,7 @@ def TrainD(
     d_losses = pix2pix.compute_D_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image)
     loss = sum(d_losses.values())
-    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_D]), beta1=opt.beat1).minimize(loss)
+    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_D]), beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
     return d_losses
 
 
@@ -69,7 +69,7 @@ def TrainG(
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image, opt, trainable=True)
     loss = sum(g_losses.values())
     # lr_scheduler = flow.optimizer.CosineScheduler()
-    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_G]), beta1=opt.beat1).minimize(loss)
+    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_G]), beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
     return g_losses, fake_image
 
 
@@ -111,6 +111,7 @@ def out_scale_semantic(input_semantics):
 
 if not opt.no_vgg_loss:
     flow.load_variables(flow.checkpoint.get(opt.pre_vgg))
+    print('Loaded success!')
 
 if not os.path.exists('./my_log'):
     os.mkdir('./my_log')
