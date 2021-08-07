@@ -51,6 +51,7 @@ class GAN_loss():
             if for_discriminator:
                 if target_is_real:
                     loss = 0
+                    femmu = 0  # 用于求平均
                     if type(input) is list:
                         for input_ in input:
                             if type(input_) is list:
@@ -58,6 +59,7 @@ class GAN_loss():
                                     minval = flow.math.minimum(input__ - flow.ones_like(input__),
                                                                self.get_zero_tensor(input__))
                                     loss += flow.math.negative(flow.math.reduce_mean(minval))
+                                    femmu +=1
                             else:
                                 minval = flow.math.minimum(input_ - flow.ones_like(input_), self.get_zero_tensor(input_))
                                 loss += flow.math.negative(flow.math.reduce_mean(minval))
@@ -65,12 +67,14 @@ class GAN_loss():
                         loss += flow.math.negative(flow.math.reduce_mean(input))
                 else:
                     loss = 0
+                    femmu = 0  # 用于求平均
                     if type(input) is list:
                         for input_ in input:
                             if type(input_) is list:
                                 for input__ in input_:
                                     minval = flow.math.minimum(flow.math.negative(input__) - flow.ones_like(input__), self.get_zero_tensor(input__))
                                     loss += flow.math.negative(flow.math.reduce_mean(minval))
+                                    femmu+=1
                             else:
                                 minval = flow.math.minimum(flow.math.negative(input_) - flow.ones_like(input_), self.get_zero_tensor(input_))
                                 loss += flow.math.negative(flow.math.reduce_mean(minval))
@@ -78,16 +82,18 @@ class GAN_loss():
                         loss += flow.math.negative(flow.math.reduce_mean(input))
             else:
                 loss = 0
+                femmu = 0 #用于求平均
                 if type(input) is list:
                     for input_ in input:
                         if type(input_) is list:
                             for input__ in input_:
                                 loss += flow.math.negative(flow.math.reduce_mean(input__))
+                                femmu+=1
                         else:
                             loss += flow.math.negative(flow.math.reduce_mean(input_))
                 else:
                     loss += flow.math.negative(flow.math.reduce_mean(input))
-            return loss
+            return loss/femmu
         else:
             raise ('Have not implemet!')
 
