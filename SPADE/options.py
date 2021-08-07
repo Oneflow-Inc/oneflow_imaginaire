@@ -46,7 +46,7 @@ class BaseOptions():
 
 
         self.parser.add_argument('--input_nc', type=int, default=3, help='')
-        self.parser.add_argument('--epochs', type=int, default=1000, help='')
+        self.parser.add_argument('--epochs', type=int, default=100, help='')
         self.parser.add_argument('--height', type=int, default=256, help='')
         self.parser.add_argument('--width', type=int, default=512, help='')
         self.parser.add_argument('--lr_G', type=float, default=0.0001, help='')
@@ -61,7 +61,7 @@ class BaseOptions():
         self.parser.add_argument('--no_ganFeat_loss', action='store_true', help='if specified, do *not* add instance map as input')
         self.parser.add_argument('--no_vgg_loss', action='store_true', help='if specified, do *not* add instance map as input')
         self.parser.add_argument('--isTrain', action='store_true', default=True, help='if specified, do *not* add instance map as input')
-        # self.parser.add_argument('--semantic_nc', type=int, default=184, help='# of output image channels')
+        self.parser.add_argument('--up', type=str, default='nearest', help='nearest|bilinear|deconv|subpixel')
 
 
         # for genereator

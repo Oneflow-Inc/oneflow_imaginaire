@@ -37,6 +37,23 @@ def conv2d_layer(
         output = flow.nn.bias_add(output, bias, data_format)
 
     return output
+
+def deconv(input, out_channel, name_prefix, kernel_size = 4, strides = [2, 2], trainable = True, reuse = True):
+    weight = flow.get_variable(
+        name_prefix + "_weight",
+        shape = (input.shape[1], out_channel, kernel_size, kernel_size),
+        dtype = flow.float,
+        initializer = flow.xavier_uniform_initializer(),
+        trainable = trainable,
+        reuse = reuse
+    )
+    return flow.nn.conv2d_transpose(
+                input,
+                weight,
+                strides = strides,
+                padding = "SAME",
+                output_shape = (input.shape[0], out_channel, input.shape[2] * strides[0], input.shape[3] * strides[1]))
+
 # Input produce batchnorm activation
 # segmap produce scale and bias
 def spade(input, segmap, ks=3, pf_norm='batch', trainable=True, name_prefix='spade'):
