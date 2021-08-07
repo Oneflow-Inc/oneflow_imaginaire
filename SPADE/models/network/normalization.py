@@ -5,7 +5,7 @@ import numpy as np
 def conv2d_layer(
     input, num_filters, kernel_size=3, strides=1, padding="SAME",
     data_format="NCHW", dilation_rate=1, use_bias=True,
-    weight_initializer=flow.random_normal_initializer(mean=0.0, stddev=0.02),
+    weight_initializer=flow.xavier_uniform_initializer(),
     bias_initializer=flow.zeros_initializer(), name="conv2d",
     trainable=None
 ):
