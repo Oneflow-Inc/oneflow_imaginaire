@@ -16,6 +16,7 @@ class BaseOptions():
         self.parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints')
         self.parser.add_argument('--phase', type=str, default='train', help='train, val, test')
         self.parser.add_argument('--pre_vgg', type=str, default='./', help='used for perceptual loss')
+        self.parser.add_argument('--pre_G_D', type=str, default='', help='')
         self.parser.add_argument('--sn', action='store_true', help='spade_norm')
 
 

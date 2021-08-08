@@ -111,7 +111,10 @@ def out_scale_semantic(input_semantics):
 
 if not opt.no_vgg_loss:
     flow.load_variables(flow.checkpoint.get(opt.pre_vgg))
-    print('Loaded success!')
+    print('Load checkpoint VGG success')
+if opt.pre_G_D!='':
+    flow.load_variables(flow.checkpoint.get(opt.pre_G_D))
+    print('Load checkpoint G and D success')
 
 if not os.path.exists('./my_log'):
     os.mkdir('./my_log')
