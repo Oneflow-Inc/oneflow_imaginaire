@@ -50,7 +50,9 @@ def TrainD(
     d_losses = pix2pix.compute_D_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image)
     loss = sum(d_losses.values())
-    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_D]), beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
+    lr_scheduler = flow.optimizer.CosineScheduler(base_lr=opt.lr_D, steps=dataset.lenOfIter_perBatch()*opt.epochs, )
+    flow.optimizer.Adam(lr_scheduler, beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
+    # flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_D]), beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
     return d_losses
 
 
@@ -68,8 +70,9 @@ def TrainG(
     g_losses, fake_image = pix2pix.compute_G_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image, opt, trainable=True)
     loss = sum(g_losses.values())
-    # lr_scheduler = flow.optimizer.CosineScheduler()
-    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_G]), beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
+    lr_scheduler = flow.optimizer.CosineScheduler(base_lr=opt.lr_G, steps=dataset.lenOfIter_perBatch() * opt.epochs, )
+    flow.optimizer.Adam(lr_scheduler, beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
+    # flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_G]), beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
     return g_losses, fake_image
 
 
