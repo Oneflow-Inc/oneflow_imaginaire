@@ -27,7 +27,8 @@ class Dataset_Help(object):
         if not opt.no_instance:
             self.instant_paths = os.path.join(opt.dataroot, opt.phase+'_inst')
             self.instant_paths = sorted(make_dataset(self.instant_paths))
-        self.shuffle2()
+        if opt.phase == 'train':
+            self.shuffle2()
 
 
     def __getitem__(self, item):
@@ -54,15 +55,18 @@ class Dataset_Help(object):
             inst_nd = np.expand_dims(inst_nd, axis=0)
             inst_nd = np.expand_dims(inst_nd, axis=0)
 
-        input_dict = {'label': label_2ndarray, 'real_image':image_2ndarray, 'instance':inst_nd}
+        if self.opt.phase == 'train':
+            input_dict = {'label': label_2ndarray, 'real_image':image_2ndarray, 'instance':inst_nd}
+        else:
+            input_dict = {'label': label_2ndarray, 'instance': inst_nd}
         return input_dict
 
 
     def __len__(self):
-        return len(self.dir_real_image)
+        return len(self.dir_label)
 
     def lenOfIter_perBatch(self):
-        return int(len(self.dir_real_image)) // int(self.opt.batch_size)
+        return int(len(self.dir_label)) // int(self.opt.batch_size)
 
     def shuffle2(self):
         # use same random seed to shuffle list

@@ -40,8 +40,10 @@ def preprocess_input(data, opt):
         input_semantics = np.concatenate([input_label, instance_edge_map], 1)
         # cv2.imshow('2', instance_edge_map[0][0].astype(np.float32))
         # cv2.waitKey()
-
-    return input_semantics, data['image']
+    if opt.phase == 'train':
+        return input_semantics, data['image']
+    else:
+        return input_semantics, None
 
 def pre_process_seg(segmap_raw):
     # size: [1, 2, 4, 8, 16, 32, 64, 128, 256]
