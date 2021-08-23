@@ -22,6 +22,7 @@ flow.env.init()
 func_config = flow.FunctionConfig()
 func_config.default_data_type(flow.float)
 func_config.default_logical_view(flow.scope.consistent_view())
+# func_config.train.num_gradient_accumulation_steps(8)
 # func_config.default_logical_view(flow.scope.mirrored_view())
 # func_config.default_placement_scope(flow.scope.placement('gpu', '0:7'))
 
@@ -50,9 +51,9 @@ def TrainD(
     d_losses = pix2pix.compute_D_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image)
     loss = sum(d_losses.values())
-    lr_scheduler = flow.optimizer.CosineScheduler(base_lr=opt.lr_D, steps=dataset.lenOfIter_perBatch()*opt.epochs, )
-    flow.optimizer.Adam(lr_scheduler, beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
-    # flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_D]), beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
+    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([10, 20, 30, 40, 50, 60, 70, 80, 90],
+                      [opt.lr_D*0.9, opt.lr_D*0.9/2, opt.lr_D*0.9/4, opt.lr_D*0.9/8, opt.lr_D*0.9/16, opt.lr_D*0.9/32, opt.lr_D*0.9/64, opt.lr_D*0.9/128, opt.lr_D*0.9/256, opt.lr_D*0.9/512]),
+                        beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
     return d_losses
 
 
@@ -70,9 +71,9 @@ def TrainG(
     g_losses, fake_image = pix2pix.compute_G_loss(input_semantics_32, input_semantics_16, input_semantics_8,
                                                  input_semantics_4, input_semantics_2, input_semantics_1, real_image, opt, trainable=True)
     loss = sum(g_losses.values())
-    lr_scheduler = flow.optimizer.CosineScheduler(base_lr=opt.lr_G, steps=dataset.lenOfIter_perBatch() * opt.epochs, )
-    flow.optimizer.Adam(lr_scheduler, beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
-    # flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([], [opt.lr_G]), beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
+    flow.optimizer.Adam(flow.optimizer.PiecewiseConstantScheduler([10, 20, 30, 40, 50, 60, 70, 80, 90],
+                  [opt.lr_G*0.9, opt.lr_G*0.9/2, opt.lr_G*0.9/4, opt.lr_G*0.9/8, opt.lr_G*0.9/16, opt.lr_G*0.9/32, opt.lr_G*0.9/64, opt.lr_G*0.9/128, opt.lr_G*0.9/256, opt.lr_G*0.9/512]),
+                        beta1=opt.beta1, beta2=opt.beta2).minimize(loss)
     return g_losses, fake_image
 
 
